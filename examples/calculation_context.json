@@ -1,0 +1,11 @@
+{
+  "schema_version": "combined_v1",
+  "reference_date": "2026-09-30",
+  "institution_profile": "PROFILE_AWAITING_REVIEW",
+  "capital_regime": "STANDARDIZED_CREDIT_REVIEW_REQUIRED",
+  "collateral_approach": "SIMPLE",
+  "rule_set_version": "pending",
+  "calculation_mode": "VALIDATION_ONLY",
+  "reporting_currency": "BRL",
+  "strict_mode": true
+}

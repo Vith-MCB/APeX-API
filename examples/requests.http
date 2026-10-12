@@ -1,0 +1,54 @@
+### Endpoints existentes (requer uvicorn iniciado)
+GET http://127.0.0.1:8000/health
+
+### DuckDB teste técnico
+GET http://127.0.0.1:8000/test/duckdb
+
+### Metadados da API v1
+GET http://127.0.0.1:8000/api/v1/info
+
+### Validação estrutural individual — não calcula FPR ou RWA
+POST http://127.0.0.1:8000/api/v1/validate/exposure
+Content-Type: application/json
+X-Correlation-ID: example-validation-001
+
+{
+  "context": {
+    "schema_version": "combined_v1",
+    "reference_date": "2026-09-30",
+    "institution_profile": "PROFILE_AWAITING_REVIEW",
+    "capital_regime": "STANDARDIZED_CREDIT_REVIEW_REQUIRED",
+    "collateral_approach": "SIMPLE",
+    "rule_set_version": "pending",
+    "calculation_mode": "VALIDATION_ONLY",
+    "reporting_currency": "BRL",
+    "strict_mode": true
+  },
+  "operation": {
+    "operation_id": "00012345",
+    "exposure_id": "EXP-12345",
+    "product_type": "SYNTHETIC_CREDIT",
+    "balance_amount": "100000.00",
+    "currency": "BRL",
+    "has_guarantee": true,
+    "is_off_balance": false
+  },
+  "mitigators": [
+    {
+      "mitigator_id": "G-01",
+      "linked_operation_id": "00012345",
+      "guarantee_type": "FINANCIAL_COLLATERAL",
+      "guarantee_face_value": "30000.00",
+      "guarantee_currency": "BRL",
+      "eligibility_evidence_status": "UNKNOWN"
+    }
+  ]
+}
+
+### Futuramente: /api/v1/batches (ver plan.md §8)
+
+### Validação de Parquet combined_v1 — não calcula FPR ou RWA
+# curl -F "context=<examples/calculation_context.json;type=application/json" \
+#      -F "file=@data/input/combined_v1.parquet" \
+#      http://127.0.0.1:8000/api/v1/validate/parquet
+

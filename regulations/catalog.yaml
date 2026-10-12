@@ -1,0 +1,22 @@
+# SEM regras aprovadas por padrão. Ver plan.md §§2, 12 e 18.
+catalog_version: "0.0.1"
+rules:
+  - rule_id: CIRC3809_ART2_PAR3_DRAFT
+    status: DRAFT
+    norm_id: CIRC3809
+    article: "2"
+    paragraph: "3"
+    effective_from: null
+    effective_to: null
+    reviewed_by: null
+    reviewed_at: null
+    note: "Prevê divisão em parcelas quando há mais de um mitigador; não é algoritmo completo."
+  - rule_id: BCB229_FIRST_FPR_DRAFT
+    status: DRAFT
+    norm_id: BCB229
+    article: null
+    effective_from: null
+    effective_to: null
+    reviewed_by: null
+    reviewed_at: null
+    note: "Selecionar categoria específica e validar artigo, campos, vigência e exceções."

@@ -1,0 +1,18 @@
+# Referências oficiais verificadas para pesquisa; conferir redação e eficácia na implementação.
+sources:
+  - id: BCB229
+    name: "Resolução BCB 229/2022"
+    url: "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=229&tipo=Resolu%C3%A7%C3%A3o+BCB"
+    scope: "RWA_CPAD e FPR"
+  - id: CIRC3809
+    name: "Circular 3.809/2016 (texto compilado)"
+    url: "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=3809&tipo=Circular"
+    scope: "Mitigação de risco de crédito"
+  - id: CMN4958
+    name: "Resolução CMN 4.958/2021"
+    url: "https://www.bcb.gov.br/estabilidadefinanceira/exibenormativo?numero=4958&tipo=Resolu%C3%A7%C3%A3o+CMN"
+    scope: "Requerimentos mínimos de capital conforme âmbito"
+  - id: COSIF
+    name: "Plano Contábil do SFN"
+    url: "https://www.bcb.gov.br/estabilidadefinanceira/cosif"
+    scope: "Contexto contábil futuro, não FPR automático"

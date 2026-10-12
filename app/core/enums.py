@@ -1,0 +1,46 @@
+"""Vocabulário estável dos contratos de entrada da API."""
+
+from enum import StrEnum
+
+
+class RecordType(StrEnum):
+    OPERATION = "OPERATION"
+    GUARANTEE = "GUARANTEE"
+
+
+class CalculationMode(StrEnum):
+    VALIDATION_ONLY = "VALIDATION_ONLY"
+    DIDACTIC = "DIDACTIC"
+    REGULATORY = "REGULATORY"
+
+
+class CollateralApproach(StrEnum):
+    SIMPLE = "SIMPLE"
+
+
+class SchemaVersion(StrEnum):
+    COMBINED_V1 = "combined_v1"
+
+
+class EligibilityEvidenceStatus(StrEnum):
+    VERIFIED = "VERIFIED"
+    DECLARED = "DECLARED"
+    UNKNOWN = "UNKNOWN"
+    NOT_MET = "NOT_MET"
+
+
+class CalculationStatus(StrEnum):
+    CALCULATED = "CALCULATED"
+    UNSUPPORTED = "UNSUPPORTED"
+    INSUFFICIENT_DATA = "INSUFFICIENT_DATA"
+    INVALID_INPUT = "INVALID_INPUT"
+    REQUIRES_REVIEW = "REQUIRES_REVIEW"
+    NOT_APPLICABLE = "NOT_APPLICABLE"
+
+
+class IssueCode(StrEnum):
+    INVALID_SCHEMA = "INVALID_SCHEMA"
+    INVALID_AMOUNT = "INVALID_AMOUNT"
+    FLAG_RELATION_MISMATCH = "FLAG_RELATION_MISMATCH"
+    ORPHAN_GUARANTEE = "ORPHAN_GUARANTEE"
+    DUPLICATE_OPERATION = "DUPLICATE_OPERATION"
