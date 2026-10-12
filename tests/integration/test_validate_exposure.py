@@ -144,5 +144,5 @@ def test_openapi_lists_only_the_implemented_phase_one_routes():
 
     assert "/api/v1/info" in paths
     assert "/api/v1/validate/exposure" in paths
+    assert "/api/v1/batches" in paths
     assert "/api/v1/calculations/exposure" not in paths
-    assert "/api/v1/batches" not in paths

@@ -6,13 +6,17 @@
 
 API de alta performance para cálculo de alocação de capital regulamentar (RWACPAD) em conformidade com as diretrizes da Resolução BCB nº 229 do Banco Central.
 
-## Estado atual (Fase 2 — ingestão Parquet)
+## Estado atual (Fase 3 — jobs persistidos)
 
-A API disponibiliza `/`, `/health`, `/test/duckdb`, `/docs`, `/api/v1/info`,
-`POST /api/v1/validate/exposure` e `POST /api/v1/validate/parquet`. O Parquet `combined_v1`
-é separado em operações, exposições e garantias. O saldo soma apenas as operações.
-Nenhuma rota calcula FPR, mitigação, RWA ou contribuição de PR. Jobs e o worker continuam
-fora desta fase. Veja o [plano completo](plan.md).
+A API disponibiliza a validação JSON, a validação Parquet e o lote em
+`POST /api/v1/batches`. O lote responde `202` e só é processado pelo worker:
+
+```bash
+python scripts/run_worker.py
+```
+
+O worker reutiliza a leitura e a validação já existentes. A saída traz issues, summary e
+manifest. Ela não contém FPR, RWA nem contribuição de PR. Veja o [plano completo](plan.md).
 
 ```bash
 python3 -m venv .venv
