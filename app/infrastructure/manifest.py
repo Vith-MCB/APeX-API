@@ -1,5 +1,8 @@
-"""Manifests de proveniência e hashes.
+"""Manifesto com o hash calculado na entrada."""
 
-PLACEHOLDER: leia plan.md e implemente na fase correspondente.
-Nenhuma regra regulatória foi validada ou implementada aqui.
-"""
+import json
+from pathlib import Path
+
+
+def write_manifest(path: Path, manifest: dict) -> None:
+    path.write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")

@@ -38,6 +38,16 @@ class CalculationStatus(StrEnum):
     NOT_APPLICABLE = "NOT_APPLICABLE"
 
 
+class JobStatus(StrEnum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    PARTIAL = "PARTIAL"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+    INTERRUPTED = "INTERRUPTED"
+
+
 class IssueCode(StrEnum):
     INVALID_SCHEMA = "INVALID_SCHEMA"
     INVALID_AMOUNT = "INVALID_AMOUNT"

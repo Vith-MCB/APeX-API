@@ -1,5 +1,8 @@
-"""Exportação Parquet e JSON.
+"""Resumo estrutural do lote, sem grandeza prudencial."""
 
-PLACEHOLDER: leia plan.md e implemente na fase correspondente.
-Nenhuma regra regulatória foi validada ou implementada aqui.
-"""
+import json
+from pathlib import Path
+
+
+def write_validation_summary(path: Path, summary: dict) -> None:
+    path.write_text(json.dumps(summary, ensure_ascii=False), encoding="utf-8")

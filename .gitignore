@@ -10,3 +10,4 @@ data/
 *.duckdb
 *.db
 *.sqlite
+graphify-out/

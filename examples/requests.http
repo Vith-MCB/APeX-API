@@ -45,7 +45,13 @@ X-Correlation-ID: example-validation-001
   ]
 }
 
-### Futuramente: /api/v1/batches (ver plan.md §8)
+### Lote Parquet — validação assíncrona, sem FPR ou RWA
+# curl -F "context=<examples/calculation_context.json;type=application/json" \
+#      -F "file=@data/input/combined_v1.parquet" \
+#      http://127.0.0.1:8000/api/v1/batches
+# python scripts/run_worker.py
+# GET http://127.0.0.1:8000/api/v1/batches/{job_id}
+
 
 ### Validação de Parquet combined_v1 — não calcula FPR ou RWA
 # curl -F "context=<examples/calculation_context.json;type=application/json" \

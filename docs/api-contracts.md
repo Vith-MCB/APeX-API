@@ -22,4 +22,16 @@ saldo não é repetido nas linhas de garantia.
 O relatório sempre contém `regulatory_calculation: false`. Ele não contém FPR, RWA nem
 contribuição de PR.
 
-Jobs, catálogo HTTP de regras e cálculo individual continuam indisponíveis.
+- `POST /api/v1/batches`: recebe o Parquet, grava `PENDING` e responde `202`.
+- `GET /api/v1/batches/{job_id}`: status persistido.
+- `GET /api/v1/batches/{job_id}/summary`: contagens e saldo depois da publicação.
+- `GET /api/v1/batches/{job_id}/errors`: issues paginadas.
+- `GET /api/v1/batches/{job_id}/artifacts/{kind}`: somente `issues`, `summary` e `manifest`.
+- `POST /api/v1/batches/{job_id}/cancel`: cancelamento cooperativo.
+- `DELETE /api/v1/batches/{job_id}`: remove um job que não está em execução.
+
+O worker publica a saída só depois de gravar os três artefatos. Um job interrompido não
+transforma arquivo temporário em resultado. Issues de linha terminam em `PARTIAL`. O summary
+traz `complete_regulatory_coverage` falso e não traz RWA.
+
+Catálogo HTTP de regras e cálculo individual continuam indisponíveis.

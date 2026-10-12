@@ -1,5 +1,6 @@
 """Separação de operações e garantias do layout combined_v1."""
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from decimal import Decimal
 from pathlib import Path
@@ -53,9 +54,16 @@ def split_records(rows: list[dict]) -> tuple[list[dict], list[dict]]:
     return operations, guarantees
 
 
-def normalize_combined(path: Path, *, batch_size: int = 65_536) -> NormalizedPortfolio:
+def normalize_combined(
+    path: Path,
+    *,
+    batch_size: int = 65_536,
+    on_batch: Callable[[pa.RecordBatch], None] | None = None,
+) -> NormalizedPortfolio:
     portfolio = NormalizedPortfolio()
     for batch in iter_batches(path, batch_size=batch_size):
+        if on_batch is not None:
+            on_batch(batch)
         _consume_batch(batch, portfolio)
     return portfolio
 
