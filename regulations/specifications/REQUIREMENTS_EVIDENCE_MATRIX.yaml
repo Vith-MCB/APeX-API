@@ -301,8 +301,9 @@ requirements:
       - collateral_provider_type
     engine_checks:
       - collateral_approach igual a SIMPLE
-      - simple_approach_election_date não posterior ao início do exercício
-      - fiscal_year_start não posterior à data-base
+      - fiscal_year_start menor ou igual a fiscal_year_end
+      - simple_approach_election_date dentro do exercício social declarado
+      - reference_date dentro do mesmo exercício social
       - provedor é COUNTERPARTY ou THIRD_PARTY
     failure:
       missing: INSUFFICIENT_DATA

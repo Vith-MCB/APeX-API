@@ -45,6 +45,11 @@ jurídicos e operacionais do art. 2º, § 1º. Ela responde pela documentação 
 pelo atestado prévio. A APeX não pede documento, parecer ou hash dessas
 comprovações e não apresenta a declaração como auditoria própria.
 
+Para o art. 3º, § 1º, a instituição declara início e fim do exercício social e
+a data da opção. A opção deve estar dentro desse período e produz efeitos desde
+o início do exercício; ela não precisa anteceder o primeiro dia. A data-base
+também deve pertencer ao exercício declarado.
+
 O motor confere:
 
 - abordagem `SIMPLE`, datas coerentes e um subtipo de título público federal;
@@ -83,6 +88,14 @@ demonstração; `REGULATORY` permanece sem número.
   vedação supervisória comprovada.
 - Enquanto o catálogo estiver `IN_REVIEW`, `REGULATORY` mantém FPR, RWA, valor
   mitigado e contribuição de capital vazios.
+
+Em `DIDACTIC`, uma mitigação `CALCULATED` publica o RWA das parcelas. Ausência
+de garantia ou garantia `NOT_APPLICABLE` preserva o RWA original como resultado
+posterior, com diferença zero. Status `UNSUPPORTED`, `INSUFFICIENT_DATA`,
+`REQUIRES_REVIEW` e `INVALID_INPUT` preservam somente
+`rwa_before_mitigation`; RWA depois, diferença e contribuição de PR permanecem
+vazios. Inconsistência entre a flag, a lista e os vínculos também produz
+`INVALID_INPUT` antes da alocação.
 
 ## Exceções e não aplicação
 

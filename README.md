@@ -31,6 +31,12 @@ nominal, moeda de indexação e indexador financeiro são comparados separadamen
 `NONE` declara ausência de indexação. A marcação deve usar a data-base ou o dia
 útil anterior expressamente declarado pela instituição.
 
+A eleição da Abordagem Simples deve ocorrer entre o início e o fim declarados
+do exercício social e produz efeitos desde o primeiro dia desse exercício.
+Mitigações pendentes ou fora do recorte mostram somente o RWA original
+didático; RWA depois, diferença e contribuição de PR ficam vazios. A flag de
+garantia, a lista e os vínculos são conferidos antes da alocação.
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate

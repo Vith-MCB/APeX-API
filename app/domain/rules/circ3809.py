@@ -51,6 +51,7 @@ class SimpleApproachContextInput:
     approach: CollateralApproach
     prudential_scope_status: PrudentialScopeStatus | None
     fiscal_year_start: date | None
+    fiscal_year_end: date | None
     election_date: date | None
     uniform_use_status: SimpleApproachUniformUseStatus | None
     recognition_bar_status: MitigationRecognitionBarStatus | None

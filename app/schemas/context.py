@@ -36,6 +36,7 @@ class CalculationContext(StrictAPIModel):
     minimum_pr_scope: MinimumPrScope | None = None
     prudential_scope_status: PrudentialScopeStatus | None = None
     fiscal_year_start: date | None = None
+    fiscal_year_end: date | None = None
     simple_approach_election_date: date | None = None
     simple_approach_uniform_use_status: SimpleApproachUniformUseStatus | None = None
     mitigation_recognition_bar_status: MitigationRecognitionBarStatus | None = None

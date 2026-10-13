@@ -284,13 +284,6 @@ def test_invalid_or_missing_market_value_date_never_receives_zero_fpr(
         ),
         (
             "context",
-            "simple_approach_election_date",
-            "2026-02-01",
-            "REQUIRES_REVIEW",
-            "simple_approach_elected_after_fiscal_year_start",
-        ),
-        (
-            "context",
             "fiscal_year_start",
             None,
             "INSUFFICIENT_DATA",
@@ -368,6 +361,105 @@ def test_simple_approach_declarations_gate_zero_fpr(
     _assert_no_covered_zero_fpr(body)
 
 
+@pytest.mark.parametrize(
+    "election_date",
+    ["2026-01-01", "2026-03-15", "2026-12-31"],
+)
+def test_simple_approach_election_inside_fiscal_year_is_valid(
+    election_date: str,
+) -> None:
+    payload = _request("DIDACTIC")
+    payload["context"]["simple_approach_election_date"] = election_date
+    body = _post(payload)
+
+    assert body["mitigation_status"] == "CALCULATED"
+    assert body["tranches"][0]["fpr"] == "0"
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "expected_status", "reason"),
+    [
+        (
+            "simple_approach_election_date",
+            "2025-12-31",
+            "REQUIRES_REVIEW",
+            "simple_approach_election_outside_fiscal_year",
+        ),
+        (
+            "simple_approach_election_date",
+            "2027-01-01",
+            "REQUIRES_REVIEW",
+            "simple_approach_election_outside_fiscal_year",
+        ),
+        (
+            "fiscal_year_start",
+            "2027-01-01",
+            "INVALID_INPUT",
+            "invalid_fiscal_year_period",
+        ),
+        (
+            "fiscal_year_end",
+            "2026-08-31",
+            "REQUIRES_REVIEW",
+            "reference_date_outside_fiscal_year",
+        ),
+    ],
+)
+def test_incoherent_fiscal_period_blocks_mitigation(
+    field: str,
+    value: str,
+    expected_status: str,
+    reason: str,
+) -> None:
+    payload = _request("DIDACTIC")
+    payload["context"][field] = value
+    body = _post(payload)
+
+    assert body["mitigation_status"] == expected_status
+    assert reason in body["mitigation_reasons"]
+    _assert_no_covered_zero_fpr(body)
+
+
+@pytest.mark.parametrize(
+    ("has_guarantee", "keep_mitigator", "expected_code"),
+    [
+        (False, True, "FLAG_RELATION_MISMATCH"),
+        (True, False, "FLAG_RELATION_MISMATCH"),
+    ],
+)
+def test_calculation_blocks_inconsistent_guarantee_flag(
+    has_guarantee: bool,
+    keep_mitigator: bool,
+    expected_code: str,
+) -> None:
+    payload = _request("DIDACTIC")
+    payload["operation"]["has_guarantee"] = has_guarantee
+    if not keep_mitigator:
+        payload["mitigators"] = []
+    body = _post(payload)
+
+    assert body["mitigation_status"] == "INVALID_INPUT"
+    assert expected_code in {issue["code"] for issue in body["issues"]}
+    assert body["rwa_before_mitigation"] == "106250.00"
+    assert body["rwa_after_mitigation"] is None
+    assert body["rwa_delta"] is None
+    assert body["minimum_pr_contribution"] is None
+    _assert_no_covered_zero_fpr(body)
+
+
+def test_calculation_blocks_orphan_mitigator() -> None:
+    payload = _request("DIDACTIC")
+    payload["mitigators"][0]["linked_operation_id"] = "OTHER"
+    body = _post(payload)
+
+    assert body["mitigation_status"] == "INVALID_INPUT"
+    assert "ORPHAN_GUARANTEE" in {issue["code"] for issue in body["issues"]}
+    assert body["rwa_before_mitigation"] == "106250.00"
+    assert body["rwa_after_mitigation"] is None
+    assert body["minimum_pr_contribution"] is None
+    _assert_no_covered_zero_fpr(body)
+
+
 def test_validation_endpoint_stays_structural() -> None:
     response = TestClient(app).post("/api/v1/validate/exposure", json=_request("VALIDATION_ONLY"))
 
@@ -427,7 +519,8 @@ def _request(mode: str, **collateral: object) -> dict[str, object]:
             "strict_mode": True,
             "prudential_scope_status": "RWA_CPAD",
             "fiscal_year_start": "2026-01-01",
-            "simple_approach_election_date": "2025-12-31",
+            "fiscal_year_end": "2026-12-31",
+            "simple_approach_election_date": "2026-03-15",
             "simple_approach_uniform_use_status": "DECLARED_UNIFORM",
             "mitigation_recognition_bar_status": "NOT_BARRED",
             "uses_sa_ccr": False,

@@ -8,9 +8,9 @@ from fastapi import APIRouter, Form, UploadFile
 from pydantic import ValidationError
 
 from app.core.config import get_settings
-from app.core.enums import IssueCode
 from app.core.errors import PublicAPIError
 from app.core.money import quantize_money
+from app.domain.services.exposure_links import validate_exposure_links
 from app.ingestion.combined_normalizer import normalize_combined, operation_balance_total
 from app.ingestion.parquet_reader import ParquetReadError, inspect_parquet
 from app.ingestion.relationship_validator import validate_links
@@ -20,7 +20,7 @@ from app.schemas.calculations import (
     ValidateExposureRequest,
     ValidationReport,
 )
-from app.schemas.common import ErrorResponse, ValidationIssue
+from app.schemas.common import ErrorResponse
 from app.schemas.context import CalculationContext
 
 router = APIRouter(prefix="/validate", tags=["validation"])
@@ -32,27 +32,14 @@ router = APIRouter(prefix="/validate", tags=["validation"])
     responses={422: {"model": ErrorResponse}},
 )
 def validate_exposure(request: ValidateExposureRequest) -> ValidationReport:
-    issues: list[ValidationIssue] = []
     operation = request.operation
-
-    if operation.has_guarantee != bool(request.mitigators):
-        issues.append(
-            ValidationIssue(
-                code=IssueCode.FLAG_RELATION_MISMATCH,
-                field="operation.has_guarantee",
-                message="has_guarantee is inconsistent with the submitted mitigators",
-            )
-        )
-
-    for index, mitigator in enumerate(request.mitigators):
-        if mitigator.linked_operation_id != operation.operation_id:
-            issues.append(
-                ValidationIssue(
-                    code=IssueCode.ORPHAN_GUARANTEE,
-                    field=f"mitigators.{index}.linked_operation_id",
-                    message="linked_operation_id does not match operation.operation_id",
-                )
-            )
+    issues = validate_exposure_links(
+        operation_id=operation.operation_id,
+        has_guarantee=operation.has_guarantee,
+        linked_operation_ids=tuple(
+            mitigator.linked_operation_id for mitigator in request.mitigators
+        ),
+    )
 
     return ValidationReport(
         exposure_id=operation.exposure_id,
@@ -60,7 +47,7 @@ def validate_exposure(request: ValidateExposureRequest) -> ValidationReport:
         calculation_mode=request.context.calculation_mode,
         reference_date=request.context.reference_date,
         mitigator_count=len(request.mitigators),
-        issues=issues,
+        issues=list(issues),
     )
 
 

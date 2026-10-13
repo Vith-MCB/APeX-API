@@ -139,6 +139,23 @@ def test_orphan_guarantee_is_a_structural_issue(valid_payload):
     assert response.json()["issues"][0]["code"] == "ORPHAN_GUARANTEE"
 
 
+def test_validation_and_calculation_share_relationship_issues(valid_payload):
+    valid_payload["mitigators"][0]["linked_operation_id"] = "OTHER"
+
+    validation = client.post("/api/v1/validate/exposure", json=valid_payload)
+    calculation = client.post("/api/v1/calculations/exposure", json=valid_payload)
+
+    assert validation.status_code == 200
+    assert calculation.status_code == 200
+    validation_codes = {issue["code"] for issue in validation.json()["issues"]}
+    calculation_body = calculation.json()
+    calculation_codes = {issue["code"] for issue in calculation_body["issues"]}
+    assert validation_codes == calculation_codes == {"ORPHAN_GUARANTEE"}
+    assert calculation_body["mitigation_status"] == "INVALID_INPUT"
+    assert calculation_body["tranches"] == []
+    assert calculation_body["rwa_after_mitigation"] is None
+
+
 def test_openapi_lists_the_implemented_routes():
     paths = client.get("/openapi.json").json()["paths"]
 
