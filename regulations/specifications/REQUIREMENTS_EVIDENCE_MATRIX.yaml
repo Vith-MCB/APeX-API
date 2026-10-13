@@ -1,0 +1,500 @@
+matrix_version: "0.2.0"
+status: IN_REVIEW
+reference_date: "2026-09-30"
+scope:
+  exposure_rule: BCB229_ART36_PJ_NAO_FINANCEIRA
+  collateral_rule: CIRC3809_SIMPLE_TPF_BRL
+scope_warning: >-
+  Esta matriz cobre os dispositivos identificados para o recorte, mas não os
+  declara exaustivos. Remissões, categorias concorrentes, poderes supervisórios
+  e alterações posteriores exigem nova verificação.
+responsibility_model:
+  apex_audits_institution_documents: false
+  institution: >-
+    A instituição financeira responde pela veracidade dos dados, pela
+    conformidade documental e pela elegibilidade prudencial previamente
+    atestada. A API recebe esses fatos como declarações estruturadas.
+  engine: >-
+    O motor avalia presença, formato, limites quantitativos, datas, moedas,
+    indexadores e relacionamentos. Uma declaração não é verificação independente
+    da APeX.
+  multiple_mitigators: >-
+    A arquitetura continua aceitando várias garantias por operação. O primeiro
+    tratamento normativo desta ficha aplica-se somente quando há um mitigador;
+    essa limitação é temporária.
+
+requirements:
+  - id: BCB229-ART36-CAPUT
+    source_id: BCB229
+    provisions: ["art. 36, caput"]
+    applicability: REQUIRED
+    requirement: >-
+      A contraparte deve ser pessoa jurídica de direito privado não financeira
+      de pequeno ou médio porte.
+    institution_attests:
+      - counterparty_legal_nature
+      - counterparty_is_financial
+      - prudential_category_conflict_status
+    engine_checks:
+      - declaração estruturada presente e dentro do vocabulário
+      - exposição em balanço
+      - ausência de conflito declarado com outra categoria
+    expected_candidate_result: "FPR original de 85%, somente após aprovação."
+    failure:
+      missing: INSUFFICIENT_DATA
+      conflicting_declaration: REQUIRES_REVIEW
+      known_outside_category: NOT_APPLICABLE
+
+  - id: BCB229-ART36-PARAGRAFO-UNICO
+    source_id: BCB229
+    provisions: ["art. 36, parágrafo único"]
+    applicability: REQUIRED
+    requirement: >-
+      A contraparte deve não ser elegível ao art. 46, possuir ativo total
+      inferior a R$ 240 milhões e receita bruta anual inferior a R$ 300
+      milhões no exercício social mais recente disponível.
+    institution_attests:
+      - counterparty_total_assets
+      - counterparty_annual_gross_revenue
+      - counterparty_financial_year_end
+      - financial_data_is_latest_available
+    engine_checks:
+      - ativo total menor que 240000000.00
+      - receita bruta anual menor que 300000000.00
+      - exercício social informado e não posterior à data-base
+    failure:
+      missing: INSUFFICIENT_DATA
+      boundary_not_met: NOT_APPLICABLE
+      contradictory_declaration: REQUIRES_REVIEW
+
+  - id: BCB229-ART46-CAPUT-P1
+    source_id: BCB229
+    provisions:
+      - "art. 46, caput"
+      - "art. 46, § 1º, incisos I a IV"
+    applicability: CONDITIONAL_CONTEXT
+    requirement: >-
+      A classificação de varejo exige cumulativamente produto ou serviço
+      destinado a pessoa natural ou PJ de pequeno porte, ausência das operações
+      enumeradas, limite total por contraparte de até R$ 5 milhões e
+      concentração inferior a 0,2% das exposições de varejo.
+    selected_cut_usage: >-
+      O recorte afasta o inciso I quando a receita não caracteriza PJ de pequeno
+      porte. Os demais incisos não são avaliados nessa rota.
+    expected_context_result: >-
+      O caput prevê FPR de 75% para varejo, mas esse valor não é aplicado pelo
+      recorte; o art. 46 serve apenas à prova de não elegibilidade do art. 36.
+    institution_attests:
+      - selected_non_retail_path
+    engine_checks:
+      - a rota selecionada é somente a comparação de receita
+    conditionally_required_attributes:
+      - total_exposure_same_counterparty_with_fcc_before_provisions
+      - retail_portfolio_exposure_amount
+      - retail_concentration_ratio
+      - retail_excluded_operation_type
+    failure:
+      selected_path_not_proven: UNSUPPORTED
+      conflicting_retail_classification: REQUIRES_REVIEW
+
+  - id: BCB229-ART46-P2
+    source_id: BCB229
+    provisions: ["art. 46, § 2º, incisos I e II"]
+    applicability: CONDITIONAL_CONTEXT
+    requirement: >-
+      Se os limites dos incisos III e IV forem testados, devem ser consideradas
+      todas as operações da contraparte com FCC e sem provisões, excluindo as
+      operações imobiliárias residenciais e os efeitos da mitigação indicados
+      no dispositivo.
+    selected_cut_usage: "Não calculado na rota fechada por receita."
+    institution_attests: []
+    engine_checks:
+      - não calcula esta base no recorte atual
+    failure:
+      alternative_path_needed: UNSUPPORTED
+
+  - id: BCB229-ART46-P3
+    source_id: BCB229
+    provisions: ["art. 46, § 3º"]
+    applicability: REQUIRED
+    requirement: >-
+      PJ de pequeno porte possui receita bruta anual inferior a R$ 15 milhões
+      no exercício social mais recente disponível.
+    selected_cut_usage: >-
+      Receita maior ou igual a R$ 15 milhões é a única comparação aceita neste
+      recorte para afastar a condição do art. 46, § 1º, inciso I.
+    institution_attests:
+      - counterparty_annual_gross_revenue
+      - counterparty_financial_year_end
+    engine_checks:
+      - receita bruta anual maior ou igual a 15000000.00
+    failure:
+      revenue_below_threshold: UNSUPPORTED
+      missing: INSUFFICIENT_DATA
+      contradictory_declaration: REQUIRES_REVIEW
+
+  - id: BCB229-ART46-P4
+    source_id: BCB229
+    provisions: ["art. 46, § 4º", "art. 22, § 3º, inciso III, por remissão"]
+    applicability: CONDITIONAL_CONTEXT
+    requirement: >-
+      Contrapartes tratadas como uma única contraparte devem cumprir os limites
+      de varejo individual e conjuntamente.
+    selected_cut_usage: >-
+      Não necessário para a rota por receita; qualquer dependência dessa
+      agregação fica fora do recorte.
+    institution_attests:
+      - connected_counterparty_status
+    engine_checks:
+      - se a instituição declarar grupo conectado, a rota atual não calcula o agregado
+    conditionally_required_attributes:
+      - connected_counterparty_group_id
+      - connected_counterparty_aggregate_exposure
+    failure:
+      aggregation_needed: UNSUPPORTED
+      possible_unresolved_group: REQUIRES_REVIEW
+
+  - id: BCB229-ART46-P5-P6
+    source_id: BCB229
+    provisions: ["art. 46, §§ 5º e 6º"]
+    applicability: OUT_OF_SCOPE
+    requirement: "Tratamentos de varejo ligados às exposições imobiliárias citadas."
+    institution_attests:
+      - exposure_depends_on_real_estate_retail_treatment
+    engine_checks:
+      - declaração positiva bloqueia o recorte
+    failure:
+      real_estate_case: UNSUPPORTED
+
+  - id: CIRC3809-ART2-CAPUT-P1
+    source_id: CIRC3809
+    provisions: ["art. 2º, caput e inciso I", "art. 2º, § 1º, incisos I a IX"]
+    applicability: REQUIRED
+    requirement: >-
+      O colateral financeiro deve cumprir sustentação legal, execução
+      tempestiva, monitoramento de degradação, segregação, controles de riscos,
+      completude contratual, liquidação ou transferência tempestiva e ausência
+      de correlação positiva relevante.
+    institution_attests:
+      - legal_enforceability_status
+      - timely_enforcement_status
+      - degradation_monitoring_status
+      - asset_segregation_status
+      - residual_risk_control_status
+      - contract_completeness_status
+      - liquidation_transfer_status
+      - relevant_positive_correlation_status
+    engine_checks:
+      - cada declaração obrigatória está presente
+      - valor declarado é DECLARED ou NOT_MET
+      - DECLARED não é tratado como auditoria da APeX
+    failure:
+      missing: INSUFFICIENT_DATA
+      contradictory_declaration: REQUIRES_REVIEW
+      requirement_not_met: NOT_APPLICABLE
+
+  - id: CIRC3809-ART2-P2
+    source_id: CIRC3809
+    provisions: ["art. 2º, § 2º, incisos I a III"]
+    applicability: REQUIRED
+    requirement: >-
+      O primeiro tratamento aceita um mitigador associado a uma única exposição.
+      A operação continua podendo carregar outras garantias no contrato.
+    institution_attests:
+      - association_scope
+      - overlap_status
+    engine_checks:
+      - linked_operation_id aponta para a operação
+      - não há sobreposição declarada
+      - este tratamento regulatório conta exatamente um mitigador
+    failure:
+      shared_or_overlap: REQUIRES_REVIEW
+      missing: INSUFFICIENT_DATA
+
+  - id: CIRC3809-ART2-P3
+    source_id: CIRC3809
+    provisions: ["art. 2º, § 3º"]
+    applicability: TEMPORARY_SINGLE_MITIGATOR
+    requirement: >-
+      Mais de um mitigador exige divisão proporcional da exposição. A
+      arquitetura preserva a lista de garantias, mas o algoritmo proporcional
+      ainda não está aprovado.
+    institution_attests: []
+    engine_checks:
+      - se a operação tiver mais de um mitigador, este tratamento retorna UNSUPPORTED
+      - os vínculos estruturais continuam validados
+    failure:
+      multiple_mitigators: UNSUPPORTED
+
+  - id: CIRC3809-ART2-P4
+    source_id: CIRC3809
+    provisions: ["art. 2º, § 4º"]
+    applicability: REQUIRED
+    requirement: >-
+      A marcação a mercado diária deve ser consistente. A instituição declara
+      essa consistência; o motor confere valor, data e frequência.
+    institution_attests:
+      - mark_to_market_is_consistent
+    engine_checks:
+      - collateral_market_value positivo
+      - market_value_as_of presente e não posterior à data-base
+      - mark_to_market_frequency igual a DAILY
+    failure:
+      missing: INSUFFICIENT_DATA
+      not_daily: NOT_APPLICABLE
+
+  - id: CIRC3809-ART2-P5
+    source_id: CIRC3809
+    provisions: ["art. 2º, § 5º"]
+    applicability: CONDITIONAL_CONTEXT
+    requirement: "Ativo em descumprimento depende das remissões do dispositivo."
+    selected_cut_usage: "O recorte não classifica ativo em descumprimento."
+    institution_attests:
+      - defaulted_asset_status
+    engine_checks:
+      - status diferente de NOT_DEFAULTED bloqueia o recorte
+    failure:
+      default_status_relevant_or_unknown: REQUIRES_REVIEW
+
+  - id: CIRC3809-ART2-P6-P7
+    source_id: CIRC3809
+    provisions: ["art. 2º, §§ 6º e 7º"]
+    applicability: OUT_OF_SCOPE
+    requirement: >-
+      Exposição resultante de compensação bilateral e colateral de cliente para
+      câmara ou prestador de compensação não pertencem ao recorte.
+    institution_attests:
+      - mitigation_context
+    engine_checks:
+      - contexto declarado fora do caso simples bloqueia o tratamento
+    failure:
+      triggered: UNSUPPORTED
+
+  - id: CIRC3809-ART2-P8
+    source_id: CIRC3809
+    provisions: ["art. 2º, § 8º"]
+    applicability: REQUIRED
+    requirement: >-
+      O BCB pode vedar o reconhecimento enquanto persistir o descumprimento de
+      divulgação referido no dispositivo.
+    institution_attests:
+      - mitigation_recognition_bar_status
+    engine_checks:
+      - status igual a NOT_BARRED, BARRED ou UNKNOWN
+    failure:
+      unknown: REQUIRES_REVIEW
+      barred: NOT_APPLICABLE
+
+  - id: CIRC3809-ART3
+    source_id: CIRC3809
+    provisions: ["art. 3º, caput e §§ 1º a 3º"]
+    applicability: REQUIRED
+    requirement: >-
+      A instituição deve escolher a Abordagem Simples para todo o exercício e
+      aplicá-la a todas as exposições mitigadas por colateral financeiro. O
+      colateral pode ser oferecido pela contraparte ou por terceiro.
+    institution_attests:
+      - simple_approach_elected_for_fiscal_year
+      - simple_approach_uniform_use_status
+      - collateral_provider_type
+    engine_checks:
+      - collateral_approach igual a SIMPLE
+      - simple_approach_election_date não posterior ao início do exercício
+      - fiscal_year_start não posterior à data-base
+      - provedor é COUNTERPARTY ou THIRD_PARTY
+    failure:
+      missing: INSUFFICIENT_DATA
+      different_approach: UNSUPPORTED
+      inconsistent_dates: REQUIRES_REVIEW
+
+  - id: CIRC3809-ART3A
+    source_id: CIRC3809
+    provisions: ["art. 3º-A e parágrafo único"]
+    applicability: OUT_OF_SCOPE
+    requirement: >-
+      SA-CCR e derivativo de contraparte possuem restrições próprias e não são
+      tratados pelo recorte.
+    institution_attests:
+      - uses_sa_ccr
+      - is_otc_derivative
+    engine_checks:
+      - qualquer valor positivo bloqueia este tratamento
+    failure:
+      triggered: UNSUPPORTED
+
+  - id: CIRC3809-ART4-III-P1
+    source_id: CIRC3809
+    provisions: ["art. 4º, inciso III", "art. 4º, § 1º, incisos I e II"]
+    applicability: REQUIRED
+    requirement: >-
+      O instrumento deve ser título público federal, marcado a mercado e
+      movimentável somente por ordem da instituição credora.
+    institution_attests:
+      - collateral_subtype
+      - creditor_movement_control_status
+    engine_checks:
+      - subtipo igual a FEDERAL_PUBLIC_BOND
+      - valor de mercado e data presentes
+      - controle de movimentação declarado como DECLARED
+    failure:
+      different_instrument: UNSUPPORTED
+      missing: INSUFFICIENT_DATA
+      control_not_met: NOT_APPLICABLE
+
+  - id: CIRC3809-ART4-P2-P6-P9-P10
+    source_id: CIRC3809
+    provisions:
+      - "art. 4º, §§ 2º a 6º"
+      - "art. 4º, §§ 9º e 10"
+    applicability: OUT_OF_SCOPE
+    requirement: >-
+      Securitização, CLN, COE, cotas de fundos, soberanos estrangeiros,
+      compromissadas e empréstimos de títulos não pertencem ao subtipo
+      selecionado.
+    institution_attests:
+      - collateral_subtype
+    engine_checks:
+      - subtipo diferente de FEDERAL_PUBLIC_BOND bloqueia este tratamento
+    failure:
+      triggered: UNSUPPORTED
+
+  - id: CIRC3809-ART4-P7-P8
+    source_id: CIRC3809
+    provisions: ["art. 4º, §§ 7º e 8º"]
+    applicability: REQUIRED
+    requirement: >-
+      O título deve estar registrado ou depositado em infraestrutura autorizada
+      e distinta da instituição financeira, com identificação de emissão,
+      titulares, ônus e gravames. A instituição declara esses fatos.
+    institution_attests:
+      - registry_or_depository_id
+      - registry_authorization_status
+      - registry_is_distinct_status
+      - rights_and_encumbrances_identified_status
+    engine_checks:
+      - identificador presente
+      - as três declarações estão presentes e não são NOT_MET
+    failure:
+      missing: INSUFFICIENT_DATA
+      requirement_not_met: NOT_APPLICABLE
+      contradictory_declaration: REQUIRES_REVIEW
+
+  - id: CIRC3809-ART5-CAPUT-P1-P2
+    source_id: CIRC3809
+    provisions:
+      - "art. 5º, caput, incisos I e II"
+      - "art. 5º, §§ 1º e 2º"
+    applicability: REQUIRED
+    requirement: >-
+      A parcela coberta recebe FPR específico e a não coberta mantém o FPR
+      original. O piso de 20% admite a exceção do art. 6º.
+    institution_attests: []
+    engine_checks:
+      - usa o FPR original somente de regra separada e executável
+      - aplica 0% à parcela coberta apenas pela exceção do art. 6º, inciso I
+    expected_candidate_result: >-
+      Art. 6º, inciso I, é a exceção ao piso para a parcela coberta.
+    failure:
+      source_rule_not_approved: REQUIRES_REVIEW
+
+  - id: CIRC3809-ART5-P3
+    source_id: CIRC3809
+    provisions: ["art. 5º, § 3º"]
+    applicability: REQUIRED
+    requirement: >-
+      O vencimento efetivo residual do colateral deve ser igual ou superior ao
+      da exposição.
+    institution_attests:
+      - exposure_effective_maturity_date
+      - collateral_effective_maturity_date
+    engine_checks:
+      - as duas datas estão presentes
+      - vencimento do colateral maior ou igual ao da exposição
+    failure:
+      missing: INSUFFICIENT_DATA
+      collateral_shorter: NOT_APPLICABLE
+
+  - id: CIRC3809-ART5-P4
+    source_id: CIRC3809
+    provisions: ["art. 5º, § 4º"]
+    applicability: OUT_OF_SCOPE
+    requirement: "Tratamento de cotas de fundos não pertence ao recorte."
+    institution_attests:
+      - collateral_subtype
+    engine_checks:
+      - subtipo de cota de fundo bloqueia este tratamento
+    failure:
+      triggered: UNSUPPORTED
+
+  - id: CIRC3809-ART6-I-P1
+    source_id: CIRC3809
+    provisions: ["art. 6º, inciso I", "art. 6º, § 1º", "art. 5º, caput"]
+    applicability: REQUIRED
+    requirement: >-
+      Sem descasamento entre moedas ou indexadores, o valor reconhecido do
+      título público federal é o valor de mercado reduzido em 20%. A parcela
+      coberta é o menor valor entre a exposição e esse valor reconhecido.
+    institution_attests:
+      - exposure_currency
+      - exposure_indexer
+      - guarantee_currency
+      - collateral_indexer
+      - collateral_market_value
+      - exposure_amount
+    engine_checks:
+      - moeda e indexador da exposição iguais aos do colateral
+      - valor_reconhecido = valor_de_mercado × 0.80
+      - parcela_coberta = minimo(exposicao, valor_reconhecido)
+      - parcela_descoberta = exposicao - parcela_coberta
+      - FPR coberto = 0 quando o art. 6º, inciso I, se aplica
+      - FPR descoberto = FPR original executável
+    numerical_scenario:
+      reference_date: "2026-09-30"
+      exposure_amount: "125000.00"
+      market_value: "100000.00"
+      recognized_value: "80000.00"
+      covered_amount: "80000.00"
+      covered_fpr: "0.00"
+      uncovered_amount: "45000.00"
+      uncovered_fpr: "0.85"
+      candidate_rwa: "38250.00"
+      basis: >-
+        Art. 6º, § 1º, reduz o valor de mercado em 20%. Art. 6º, inciso I,
+        atribui FPR 0% sem descasamento. Art. 5º separa parcela coberta e não
+        coberta. A parcela coberta não excede a exposição. O FPR de 85% vem do
+        art. 36 quando essa exposição também estiver enquadrada.
+    failure:
+      missing: INSUFFICIENT_DATA
+      mismatch: UNSUPPORTED
+      ambiguous_indexer: REQUIRES_REVIEW
+
+  - id: CIRC3809-ART6-II-P2-P3
+    source_id: CIRC3809
+    provisions:
+      - "art. 6º, inciso II"
+      - "art. 6º, §§ 2º e 3º"
+    applicability: OUT_OF_SCOPE
+    requirement: >-
+      Descasamento de moeda, soberano estrangeiro e depósito em ouro possuem
+      condições próprias e não pertencem ao recorte.
+    institution_attests:
+      - currency_or_indexer_mismatch
+      - collateral_subtype
+    engine_checks:
+      - descasamento ou subtipo excluído bloqueia este tratamento
+    failure:
+      triggered: UNSUPPORTED
+
+  - id: CIRC3809-ART7
+    source_id: CIRC3809
+    provisions: ["art. 7º, incisos I e II"]
+    applicability: OUT_OF_SCOPE
+    requirement: >-
+      Parcela resultante de derivativo de balcão marcado diariamente possui
+      tratamento próprio e deve ser detectada antes desta regra.
+    institution_attests:
+      - is_otc_derivative
+    engine_checks:
+      - derivativo de balcão bloqueia este tratamento
+    failure:
+      triggered: UNSUPPORTED

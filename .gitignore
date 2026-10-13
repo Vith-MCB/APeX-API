@@ -3,11 +3,24 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
 
 .env
+*.log
+*.zip
+.DS_Store
+
 data/
 *.parquet
 *.duckdb
 *.db
 *.sqlite
 graphify-out/
+
+# regulations/sources/ permanece versionado.
+# O registro e os testes conferem o SHA-256 desses textos oficiais.
