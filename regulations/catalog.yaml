@@ -1,5 +1,5 @@
-# SEM regras aprovadas por padrão. Ver plan.md §§2, 12 e 18.
-catalog_version: "0.0.1"
+# Nenhuma entrada deste catálogo está autorizada para execução.
+catalog_version: "0.3.0"
 rules:
   - rule_id: CIRC3809_ART2_PAR3_DRAFT
     status: DRAFT
@@ -11,12 +11,33 @@ rules:
     reviewed_by: null
     reviewed_at: null
     note: "Prevê divisão em parcelas quando há mais de um mitigador; não é algoritmo completo."
-  - rule_id: BCB229_FIRST_FPR_DRAFT
-    status: DRAFT
+  - rule_id: BCB229_ART36_PJ_NAO_FINANCEIRA
+    version: "0.3.0"
+    status: IN_REVIEW
     norm_id: BCB229
-    article: null
-    effective_from: null
+    article: "36"
+    effective_from: "2023-07-01"
     effective_to: null
     reviewed_by: null
     reviewed_at: null
-    note: "Selecionar categoria específica e validar artigo, campos, vigência e exceções."
+    source_id: BCB229
+    source_sha256: "45b3be023b8cbb092aa4ad66c78f96cec6b1621187cd742d67827805cc5c4549"
+    specification: "regulations/specifications/BCB229_ART36_PJ_NAO_FINANCEIRA_IN_REVIEW.md"
+    requirements_matrix: "regulations/specifications/REQUIREMENTS_EVIDENCE_MATRIX.yaml"
+    contract_attributes: "regulations/specifications/API_CONTRACT_ATTRIBUTES_IN_REVIEW.md"
+    note: "Art. 36 em revisão. A instituição declara os fatos; não há auditoria documental da APeX."
+  - rule_id: CIRC3809_SIMPLE_TPF_BRL
+    version: "0.3.0"
+    status: IN_REVIEW
+    norm_id: CIRC3809
+    article: "2-7"
+    effective_from: "2023-07-01"
+    effective_to: null
+    reviewed_by: null
+    reviewed_at: null
+    source_id: CIRC3809
+    source_sha256: "10e7439e8ca16809730fc466b44a6fe6a20f053953165b9c1f3199e1e061d77a"
+    specification: "regulations/specifications/CIRC3809_SIMPLE_TPF_BRL_IN_REVIEW.md"
+    requirements_matrix: "regulations/specifications/REQUIREMENTS_EVIDENCE_MATRIX.yaml"
+    contract_attributes: "regulations/specifications/API_CONTRACT_ATTRIBUTES_IN_REVIEW.md"
+    note: "Título público federal em BRL, um mitigador no primeiro tratamento; arquitetura de várias garantias preservada."
