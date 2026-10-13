@@ -6,7 +6,7 @@
 
 API de alta performance para cálculo de alocação de capital regulamentar (RWACPAD) em conformidade com as diretrizes da Resolução BCB nº 229 do Banco Central.
 
-## Estado atual (Fase 7 — RWA didático)
+## Estado atual (Fase 8 — exportação do subconjunto)
 
 A API disponibiliza a validação JSON, a validação Parquet e o lote em
 `POST /api/v1/batches`. O lote responde `202` e só é processado pelo worker:
@@ -15,14 +15,18 @@ A API disponibiliza a validação JSON, a validação Parquet e o lote em
 python scripts/run_worker.py
 ```
 
-O worker reutiliza a leitura e a validação já existentes. A saída do lote traz issues,
-summary e manifest, ainda sem números prudenciais.
+O worker grava `results.parquet`, `tranches.parquet`, `issues.parquet`,
+`trace.parquet`, `summary.json` e `manifest.json`. O layout `combined_v1` não
+carrega as declarações do recorte, então essas linhas saem sem FPR, parcela,
+RWA nem contribuição, e o subconjunto agregado fica vazio.
 
 `POST /api/v1/calculations/exposure` demonstra, no modo `DIDACTIC`, o FPR original, as
 parcelas, o RWA antes/depois e a contribuição isolada de 8% ao mínimo de PR para o recorte
-implementado. As regras permanecem `IN_REVIEW`; `REGULATORY` e `VALIDATION_ONLY` não
-publicam números. O resultado não representa o RWA total nem o requerimento de PR da
-instituição. Veja o [plano completo](plan.md).
+implementado. Uma exposição de R$ 125.000,00 com colateral de R$ 100.000,00 fecha o
+subconjunto em RWA de R$ 38.250,00 e contribuição de R$ 3.060,00. Exposição pendente
+permanece no arquivo e fica fora dessa soma. As regras permanecem `IN_REVIEW`;
+`REGULATORY` e `VALIDATION_ONLY` não publicam números. O resultado não representa o
+RWA total nem o requerimento de PR da instituição. Veja o [plano completo](plan.md).
 
 O título público federal só recebe o tratamento didático quando a instituição
 declara o escopo `RWA_CPAD`, a eleição e o uso uniforme da Abordagem Simples,

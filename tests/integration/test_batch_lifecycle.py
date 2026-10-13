@@ -82,7 +82,14 @@ def test_synthetic_batch_finishes_with_operation_balance_only(workspace, tmp_pat
     assert body["mitigator_count"] == 0
     assert body["balance_total"] == f"{row_count}.00"
     assert body["complete_regulatory_coverage"] is False
+    assert body["calculated_subset_rwa"] is None
+    assert body["calculated_subset_pr_contribution"] is None
+    assert body["pending_exposure_count"] == row_count
+    assert body["coverage_ratio"] == "0.0000"
     assert "rwa_before_mitigation" not in body
+    assert client.get(f"/api/v1/batches/{job_id}/artifacts/results").status_code == 200
+    assert client.get(f"/api/v1/batches/{job_id}/artifacts/tranches").status_code == 200
+    assert client.get(f"/api/v1/batches/{job_id}/artifacts/trace").status_code == 200
     manifest = client.get(f"/api/v1/batches/{job_id}/artifacts/manifest").json()
     stored = (workspace.data_dir / "input" / job_id / "upload.parquet").read_bytes()
     assert manifest["input_sha256"] == hashlib.sha256(stored).hexdigest()

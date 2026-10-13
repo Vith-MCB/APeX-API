@@ -10,9 +10,17 @@ from app.ingestion.parquet_reader import ParquetReadError, inspect_parquet
 from app.ingestion.relationship_validator import validate_links
 from app.infrastructure.file_store import FileStore
 from app.infrastructure.job_repository import JobRecord, JobRepository, is_stale
-from app.infrastructure.manifest import write_manifest
-from app.reporting.exporter import write_validation_summary
+from app.reporting.dossier import visible_rules, visible_sources
+from app.reporting.exporter import (
+    artifact_hashes,
+    write_manifest,
+    write_results,
+    write_summary,
+    write_tranches,
+    write_traces,
+)
 from app.reporting.issues import export_issues
+from app.reporting.portfolio import aggregate_portfolio, structural_exposure_exports
 from app.worker.progress import JobCancelled, check_cancel
 
 WORKER_ID = "local-worker"
@@ -79,27 +87,50 @@ def run_job(
             check_cancel(repository, job.job_id)
             repository.update_progress(job.job_id, processed_delta=batch.num_rows)
 
-        canonical = validate_links(normalize_combined(source, on_batch=on_batch))
+        normalized = normalize_combined(source, on_batch=on_batch)
+        canonical = validate_links(normalized)
         check_cancel(repository, job.job_id)
+        context = json.loads(job.context_json)
+        results = structural_exposure_exports(
+            canonical.operations,
+            canonical.mitigators,
+            job_id=job.job_id,
+            calculation_mode=job.calculation_mode,
+            rule_set_version=str(context["rule_set_version"]),
+            input_sha256=job.input_sha256,
+        )
         balance = quantize_money(operation_balance_total(canonical.operations), 2)
-        summary = {
-            "operation_count": len(canonical.operations),
-            "exposure_count": len(canonical.exposures),
-            "mitigator_count": len(canonical.mitigators),
-            "balance_total": f"{balance:.2f}",
-            "issue_count": len(canonical.issues),
-            "complete_regulatory_coverage": False,
-        }
+        summary = aggregate_portfolio(
+            results,
+            operation_row_count=len(canonical.operations),
+            guarantee_row_count=len(normalized.mitigators),
+            issue_count=len(canonical.issues),
+            balance_total=balance,
+        )
         work = store.work_directory(job.job_id)
+        output_names = [
+            "results.parquet",
+            "tranches.parquet",
+            "issues.parquet",
+            "trace.parquet",
+            "summary.json",
+        ]
+        write_results(work / "results.parquet", results)
+        write_tranches(work / "tranches.parquet", [])
         export_issues(work / "issues.parquet", canonical.issues)
-        write_validation_summary(work / "summary.json", summary)
+        write_traces(work / "trace.parquet", [])
+        write_summary(work / "summary.json", summary)
         write_manifest(
             work / "manifest.json",
             {
                 "job_id": job.job_id,
                 "schema_version": job.schema_version,
+                "calculation_mode": job.calculation_mode,
+                "reference_date": job.reference_date,
                 "input_sha256": job.input_sha256,
-                "artifacts": ["issues.parquet", "summary.json", "manifest.json"],
+                "artifact_sha256": artifact_hashes(work, output_names),
+                "rules": visible_rules(),
+                "sources": visible_sources(),
                 "complete_regulatory_coverage": False,
             },
         )

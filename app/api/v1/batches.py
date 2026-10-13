@@ -22,11 +22,17 @@ from app.schemas.context import CalculationContext
 router = APIRouter(prefix="/batches", tags=["batches"])
 ARTIFACTS = {
     "issues": "issues.parquet",
+    "results": "results.parquet",
+    "tranches": "tranches.parquet",
+    "trace": "trace.parquet",
     "summary": "summary.json",
     "manifest": "manifest.json",
 }
 MEDIA_TYPES = {
     "issues": "application/vnd.apache.parquet",
+    "results": "application/vnd.apache.parquet",
+    "tranches": "application/vnd.apache.parquet",
+    "trace": "application/vnd.apache.parquet",
     "summary": "application/json",
     "manifest": "application/json",
 }
@@ -139,7 +145,8 @@ def get_errors(
     store = _store()
     if not store.is_published(job.job_id):
         raise PublicAPIError("INVALID_SCHEMA", "job output is not available", status_code=409)
-    rows = pq.read_table(store.artifact_path(job.job_id, "issues.parquet")).to_pylist()
+    table = pq.read_table(store.artifact_path(job.job_id, "issues.parquet"))
+    rows = table.select(["code", "field", "message"]).to_pylist()
     page = rows[offset : offset + limit]
     return JobIssuePage(
         job_id=job.job_id,
