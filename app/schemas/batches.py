@@ -1,4 +1,4 @@
-"""Contratos de jobs de validação, sem resultado prudencial."""
+"""Contratos de jobs. O lote estrutural deixa o subconjunto prudencial vazio."""
 
 from typing import Literal
 
@@ -35,6 +35,16 @@ class BatchSummary(StrictAPIModel):
     balance_total: str
     issue_count: int
     complete_regulatory_coverage: Literal[False]
+    operation_row_count: int
+    guarantee_row_count: int
+    multi_mitigator_operation_count: int
+    pending_exposure_count: int
+    pending_balance: str
+    calculated_exposure_count: int
+    coverage_ratio: str
+    calculated_subset_rwa: str | None
+    calculated_subset_pr_contribution: str | None
+    status_counts: dict[str, int]
 
 
 class JobIssuePage(StrictAPIModel):
