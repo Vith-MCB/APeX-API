@@ -1,5 +1,15 @@
-"""ExposureTranche, componente de cálculo.
+"""Parcelas coberta e descoberta de uma exposição."""
 
-PLACEHOLDER: leia plan.md e implemente na fase correspondente.
-Nenhuma regra regulatória foi validada ou implementada aqui.
-"""
+from dataclasses import dataclass
+from decimal import Decimal
+
+from app.core.enums import TrancheType
+
+
+@dataclass(frozen=True)
+class ExposureTranche:
+    tranche_type: TrancheType
+    amount: Decimal
+    fpr: Decimal
+    rule_id: str
+    article: str

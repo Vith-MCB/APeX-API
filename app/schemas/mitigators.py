@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from app.core.enums import EligibilityEvidenceStatus
+from app.core.enums import AssociationScope, EligibilityEvidenceStatus, MarkToMarketFrequency, OverlapStatus
 from app.schemas.common import IdentifierStr, MoneyStr, StrictAPIModel
 from app.schemas.context import CurrencyCode
 
@@ -20,3 +20,10 @@ class MitigatorInput(StrictAPIModel):
     allocated_coverage_amount: MoneyStr | None = None
     legal_enforceability_evidence: EligibilityEvidenceStatus | None = None
     eligibility_evidence_status: EligibilityEvidenceStatus | None = None
+    collateral_indexer: IdentifierStr | None = None
+    market_value_as_of: date | None = None
+    mark_to_market_frequency: MarkToMarketFrequency | None = None
+    collateral_effective_maturity_date: date | None = None
+    overlap_status: OverlapStatus | None = None
+    association_scope: AssociationScope | None = None
+    institution_requirements_status: EligibilityEvidenceStatus | None = None
