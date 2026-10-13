@@ -139,10 +139,10 @@ def test_orphan_guarantee_is_a_structural_issue(valid_payload):
     assert response.json()["issues"][0]["code"] == "ORPHAN_GUARANTEE"
 
 
-def test_openapi_lists_only_the_implemented_phase_one_routes():
+def test_openapi_lists_the_implemented_routes():
     paths = client.get("/openapi.json").json()["paths"]
 
     assert "/api/v1/info" in paths
     assert "/api/v1/validate/exposure" in paths
     assert "/api/v1/batches" in paths
-    assert "/api/v1/calculations/exposure" not in paths
+    assert "/api/v1/calculations/exposure" in paths
