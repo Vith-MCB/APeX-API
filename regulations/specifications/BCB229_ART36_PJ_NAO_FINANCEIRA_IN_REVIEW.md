@@ -107,13 +107,26 @@ declarações estruturadas.
 - declaração ausente ou contraditória. A simples condição de declarada não
   impede o enquadramento.
 
+## Hipótese de E
+
+O art. 5º determina o valor da exposição pelos critérios do Cosif, salvo
+disposição específica. O art. 6º, na redação vigente desde 02/01/2025, manda
+deduzir os ajustes relativos a provisões, e o resultado não pode ser negativo.
+
+O Cosif não é aplicado nesta versão. `balance_amount` permanece saldo contábil
+e não é copiado para E. E só é aceito quando a instituição declara
+`provided_exposure_amount` com a base `INSTITUTION_DECLARED_ART5_ART6`. Sem
+essa declaração, a saída é `INSUFFICIENT_DATA`. Valor negativo é
+`INVALID_INPUT`.
+
 ## Valor normativo e precisão
 
 - FPR original citado no art. 36: `85%` (`0.85`).
-- Esta ficha não define exposição, RWA, capital, FMR nem arredondamento.
+- Esta ficha não calcula RWA, capital nem FMR.
 - O artigo não estabelece regra de arredondamento para o FPR.
-- O número é evidência documental. Nenhum módulo pode retorná-lo enquanto o
-  status for `IN_REVIEW`.
+- No modo `DIDACTIC`, E e o FPR podem aparecer marcados como demonstração.
+- No modo `REGULATORY`, enquanto o status for `IN_REVIEW`, os campos numéricos
+  permanecem vazios.
 
 ## Casos especificados
 

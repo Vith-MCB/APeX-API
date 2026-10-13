@@ -7,8 +7,9 @@
 - Matriz normativa:
   `regulations/specifications/REQUIREMENTS_EVIDENCE_MATRIX.yaml`
 
-Este documento descreve campos para uma fase futura. Ele não altera os schemas
-atuais, não aprova regras e não habilita cálculo regulatório.
+As declarações do art. 36 e a base de E entraram no contrato individual. O
+layout Parquet não mudou. As regras não estão aprovadas e o modo `REGULATORY`
+não devolve número.
 
 ## Duas responsabilidades
 
@@ -59,7 +60,9 @@ Declarações da instituição:
 - `prudential_category_conflict_status`;
 - `exposure_indexer`;
 - `exposure_effective_maturity_date`;
-- `is_otc_derivative`.
+- `is_otc_derivative`;
+- `exposure_value_basis=INSTITUTION_DECLARED_ART5_ART6`, junto de
+  `provided_exposure_amount`, para declarar E já apurado nos arts. 5º e 6º.
 
 Condições conferidas pelo motor:
 
