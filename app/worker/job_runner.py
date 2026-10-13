@@ -1,6 +1,7 @@
 """Executa um job de validação e só então publica a saída."""
 
 import json
+import time
 
 from app.core.config import Settings, get_settings
 from app.core.enums import JobStatus
@@ -78,8 +79,10 @@ def run_job(
     repository: JobRepository,
     store: FileStore,
     settings: Settings,
+    stage_seconds: dict[str, float] | None = None,
 ) -> None:
     try:
+        validation_started = time.perf_counter()
         source = store.input_file(job.job_id)
         inspect_parquet(source, max_bytes=settings.max_upload_bytes)
 
@@ -89,7 +92,9 @@ def run_job(
 
         normalized = normalize_combined(source, on_batch=on_batch)
         canonical = validate_links(normalized)
+        _remember(stage_seconds, "validation_seconds", validation_started)
         check_cancel(repository, job.job_id)
+        export_started = time.perf_counter()
         context = json.loads(job.context_json)
         results = structural_exposure_exports(
             canonical.operations,
@@ -134,6 +139,7 @@ def run_job(
                 "complete_regulatory_coverage": False,
             },
         )
+        _remember(stage_seconds, "export_seconds", export_started)
         store.publish(job.job_id)
         repository.finish_job(
             job.job_id,
@@ -153,3 +159,9 @@ def run_job(
     except Exception:
         store.discard_work(job.job_id)
         repository.finish_job(job.job_id, JobStatus.FAILED, error_message="job failed before publishing output")
+
+
+def _remember(stage_seconds: dict[str, float] | None, name: str, started: float) -> None:
+    if stage_seconds is None:
+        return
+    stage_seconds[name] = time.perf_counter() - started

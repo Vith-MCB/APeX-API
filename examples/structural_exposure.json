@@ -1,0 +1,32 @@
+{
+  "context": {
+    "schema_version": "combined_v1",
+    "reference_date": "2026-09-30",
+    "institution_profile": "PROFILE_AWAITING_REVIEW",
+    "capital_regime": "STANDARDIZED_CREDIT_REVIEW_REQUIRED",
+    "collateral_approach": "SIMPLE",
+    "rule_set_version": "pending",
+    "calculation_mode": "VALIDATION_ONLY",
+    "reporting_currency": "BRL",
+    "strict_mode": true
+  },
+  "operation": {
+    "operation_id": "00012345",
+    "exposure_id": "EXP-12345",
+    "product_type": "SYNTHETIC_CREDIT",
+    "balance_amount": "100000.00",
+    "currency": "BRL",
+    "has_guarantee": true,
+    "is_off_balance": false
+  },
+  "mitigators": [
+    {
+      "mitigator_id": "G-01",
+      "linked_operation_id": "00012345",
+      "guarantee_type": "FINANCIAL_COLLATERAL",
+      "guarantee_face_value": "30000.00",
+      "guarantee_currency": "BRL",
+      "eligibility_evidence_status": "UNKNOWN"
+    }
+  ]
+}

@@ -45,6 +45,13 @@ X-Correlation-ID: example-validation-001
   ]
 }
 
+### Cálculo didático — recorte art. 36 e um título público federal
+# O arquivo é sintético. Os números não são cálculo regulatório aprovado.
+POST http://127.0.0.1:8000/api/v1/calculations/exposure
+Content-Type: application/json
+
+< ./didactic_exposure.json
+
 ### Lote Parquet — validação assíncrona, sem FPR ou RWA
 # curl -F "context=<examples/calculation_context.json;type=application/json" \
 #      -F "file=@data/input/combined_v1.parquet" \

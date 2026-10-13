@@ -20,6 +20,10 @@ data/
 *.duckdb
 *.db
 *.sqlite
+.cursor/
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
 graphify-out/
 
 # regulations/sources/ permanece versionado.

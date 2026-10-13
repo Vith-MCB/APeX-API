@@ -5,10 +5,13 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 from fastapi.testclient import TestClient
 
 from app.core.config import Settings
+from app.core.security import hash_file
 from app.infrastructure.file_store import FileStore, UnsafePath, job_directory
 from app.infrastructure.job_repository import JobRepository
 from app.ingestion.fixture_loader import write_combined_parquet
@@ -195,3 +198,93 @@ def test_database_initialization_keeps_existing_jobs(workspace, tmp_path):
     again = JobRepository(workspace.database_path)
 
     assert again.get_job(job_id).status == "PENDING"
+
+
+def test_empty_parquet_completes_with_null_subset(workspace, tmp_path):
+    path = tmp_path / "empty.parquet"
+    write_combined_parquet([], path)
+    response = _post_file(path)
+    assert response.status_code == 202
+    job_id = response.json()["job_id"]
+    _run_until_done()
+
+    status = client.get(f"/api/v1/batches/{job_id}").json()
+    summary = client.get(f"/api/v1/batches/{job_id}/summary").json()
+    assert status["status"] == "COMPLETED"
+    assert summary["operation_count"] == 0
+    assert summary["exposure_count"] == 0
+    assert summary["balance_total"] == "0.00"
+    assert summary["calculated_subset_rwa"] is None
+    assert summary["pending_exposure_count"] == 0
+
+
+def test_narrow_parquet_is_rejected_without_a_job(workspace, tmp_path):
+    path = tmp_path / "narrow.parquet"
+    pq.write_table(pa.table({"record_type": ["OPERATION"], "row_id": ["r1"]}), path)
+
+    response = _post_file(path)
+
+    assert response.status_code == 400
+    assert _job_count(workspace) == 0
+
+
+def test_truncated_parquet_is_rejected_without_a_job(workspace, tmp_path):
+    path = tmp_path / "truncated.parquet"
+    path.write_bytes(b"PAR1" + b"\x00" * 32)
+
+    response = _post_file(path)
+
+    assert response.status_code == 400
+    assert _job_count(workspace) == 0
+
+
+def test_duplicate_operation_is_partial_and_balance_is_not_summed(workspace, tmp_path):
+    rows = [
+        _operation(1, balance_amount="10.00"),
+        _operation(1, row_id="other", exposure_id="EXP-OTHER", balance_amount="99.00"),
+    ]
+    response = _upload(tmp_path, rows)
+    job_id = response.json()["job_id"]
+    _run_until_done()
+
+    status = client.get(f"/api/v1/batches/{job_id}").json()
+    summary = client.get(f"/api/v1/batches/{job_id}/summary").json()
+    errors = client.get(f"/api/v1/batches/{job_id}/errors").json()
+    assert status["status"] == "PARTIAL"
+    assert summary["operation_count"] == 1
+    assert summary["balance_total"] == "10.00"
+    assert summary["calculated_subset_rwa"] is None
+    assert errors["issues"][0]["code"] == "DUPLICATE_OPERATION"
+
+
+def test_published_manifest_hashes_match_the_files(workspace, tmp_path):
+    response = _upload(tmp_path, [_operation(1)])
+    job_id = response.json()["job_id"]
+    _run_until_done()
+
+    manifest = client.get(f"/api/v1/batches/{job_id}/artifacts/manifest").json()
+    output = workspace.data_dir / "output" / job_id
+    for name, digest in manifest["artifact_sha256"].items():
+        assert digest == hash_file(output / name)
+    summary = client.get(f"/api/v1/batches/{job_id}/summary").json()
+    metadata = pq.read_metadata(output / "results.parquet")
+    assert metadata.num_rows == summary["exposure_count"] == 1
+    assert summary["calculated_subset_rwa"] is None
+    row = pq.read_table(output / "results.parquet").to_pylist()[0]
+    assert row["rwa_after_mitigation"] is None
+
+
+def _post_file(path: Path):
+    with path.open("rb") as handle:
+        return client.post(
+            "/api/v1/batches",
+            data={"context": CONTEXT},
+            files={"file": ("batch.parquet", handle, "application/octet-stream")},
+        )
+
+
+def _job_count(workspace) -> int:
+    if not workspace.database_path.exists():
+        return 0
+    with sqlite3.connect(workspace.database_path) as connection:
+        return connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
