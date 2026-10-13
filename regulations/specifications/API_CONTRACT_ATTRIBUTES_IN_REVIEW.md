@@ -44,8 +44,9 @@ insuficiente. `NOT_MET` indica requisito objetivo não atendido. `VERIFIED` não
 - `uses_sa_ccr`: declaração usada para bloquear o art. 3º-A.
 
 O motor rejeita outra abordagem, data de eleição posterior ao exercício e
-status desconhecido. `institution_profile` e `capital_regime` continuam sem
-substituir a declaração de escopo.
+status desconhecido. `prudential_scope_status=RWA_CPAD` confirma o escopo
+declarado deste tratamento. `institution_profile` e `capital_regime` continuam
+sem substituir a declaração de escopo.
 
 ## Operação e contraparte
 
@@ -58,7 +59,8 @@ Declarações da instituição:
 - `counterparty_financial_year_end`;
 - `financial_data_is_latest_available`;
 - `prudential_category_conflict_status`;
-- `exposure_indexer`;
+- `exposure_indexation_currency`, com código de moeda ou `NONE` explícito;
+- `exposure_financial_indexer`, com nome do indexador ou `NONE` explícito;
 - `exposure_effective_maturity_date`;
 - `is_otc_derivative`;
 - `exposure_value_basis=INSTITUTION_DECLARED_ART5_ART6`, junto de
@@ -101,13 +103,28 @@ houver mais de um, os registros são preservados e este tratamento retorna
 Declarações da instituição para o colateral:
 
 - classificação como título público federal;
-- provedor `COUNTERPARTY` ou `THIRD_PARTY`;
+- `guarantee_type=COLLATERAL` e provedor `COUNTERPARTY` ou `THIRD_PARTY`;
 - consistência da marcação a mercado;
 - controle de movimentação pelo credor;
 - registro ou depósito autorizado, em entidade distinta, com ônus identificados;
 - sustentação legal, execução tempestiva, monitoramento, segregação, controles,
   completude contratual, liquidação e ausência de correlação positiva relevante;
 - escopo de associação e ausência de sobreposição.
+
+Moeda de indexação e indexador financeiro são fatos diferentes. O contrato usa
+`collateral_indexation_currency` e `collateral_financial_indexer`. Ausência de
+indexação é declarada com `NONE` nos dois lados da comparação; campos nulos não
+são interpretados como coincidência.
+
+Para a data do valor de mercado, `market_value_date_policy` aceita:
+
+- `REFERENCE_DATE`: `market_value_as_of` deve ser igual à data-base;
+- `PREVIOUS_BUSINESS_DAY_DECLARED`: a data deve ser anterior à data-base e a
+  instituição declara que ela corresponde ao dia útil imediatamente anterior.
+
+A APeX confere a coerência entre a política e as datas. A instituição responde
+pelo calendário usado na declaração de dia útil. Frequência `DAILY` e
+`mark_to_market_consistency_status=DECLARED` continuam obrigatórios.
 
 Condições conferidas pelo motor:
 
@@ -123,10 +140,12 @@ Condições conferidas pelo motor:
 
 `allocated_coverage_amount` enviado pelo cliente não substitui essa conta.
 
-## Resposta futura
+## Resposta
 
-Antes da aprovação humana, a resposta continua com `regulatory_calculation=false`
-e sem FPR, RWA, capital ou valor mitigado. Depois da aprovação, a resposta deve
-expor o status, as regras, as declarações usadas e os motivos de bloqueio. Os
-hashes exigidos continuam sendo os das fontes oficiais e das especificações,
-não os de documentos internos da instituição.
+Enquanto as fichas estão `IN_REVIEW`, somente `DIDACTIC` publica candidatos de
+FPR, parcelas, RWA e contribuição isolada de PR, sempre com
+`regulatory_calculation=false` e `complete_regulatory_coverage=false`.
+`REGULATORY` e `VALIDATION_ONLY` mantêm esses números vazios. A resposta expõe
+status, regras e motivos de bloqueio. Os hashes exigidos continuam sendo os das
+fontes oficiais e das especificações, não os de documentos internos da
+instituição.

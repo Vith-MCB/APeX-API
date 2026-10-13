@@ -103,3 +103,34 @@ class MinimumPrScope(StrEnum):
     SEGMENT_5 = "SEGMENT_5"
     CREDIT_COOPERATIVE_ART7 = "CREDIT_COOPERATIVE_ART7"
     UNKNOWN = "UNKNOWN"
+
+
+class PrudentialScopeStatus(StrEnum):
+    RWA_CPAD = "RWA_CPAD"
+    OTHER = "OTHER"
+    UNKNOWN = "UNKNOWN"
+
+
+class SimpleApproachUniformUseStatus(StrEnum):
+    DECLARED_UNIFORM = "DECLARED_UNIFORM"
+    NOT_UNIFORM = "NOT_UNIFORM"
+    UNKNOWN = "UNKNOWN"
+
+
+class MitigationRecognitionBarStatus(StrEnum):
+    NOT_BARRED = "NOT_BARRED"
+    BARRED = "BARRED"
+    UNKNOWN = "UNKNOWN"
+
+
+class CollateralProviderType(StrEnum):
+    COUNTERPARTY = "COUNTERPARTY"
+    THIRD_PARTY = "THIRD_PARTY"
+    OTHER = "OTHER"
+    UNKNOWN = "UNKNOWN"
+
+
+class MarketValueDatePolicy(StrEnum):
+    REFERENCE_DATE = "REFERENCE_DATE"
+    PREVIOUS_BUSINESS_DAY_DECLARED = "PREVIOUS_BUSINESS_DAY_DECLARED"
+    UNKNOWN = "UNKNOWN"

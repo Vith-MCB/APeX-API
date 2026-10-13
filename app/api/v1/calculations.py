@@ -8,7 +8,12 @@ from app.core.enums import CalculationMode, CalculationStatus
 from app.core.money import parse_decimal, quantize_money
 from app.domain.models.decision import OriginalFprDecision
 from app.domain.rules.bcb229 import Art36Input
-from app.domain.rules.circ3809 import HAIRCUT, RULE_ID as COLLATERAL_RULE_ID, CollateralInput
+from app.domain.rules.circ3809 import (
+    HAIRCUT,
+    RULE_ID as COLLATERAL_RULE_ID,
+    CollateralInput,
+    SimpleApproachContextInput,
+)
 from app.domain.services.capital import MinimumPrDecision, calculate_minimum_pr_contribution
 from app.domain.services.fpr import resolve_original_fpr
 from app.domain.services.reconciliation import tranche_rwa_sums_to_total
@@ -34,11 +39,7 @@ def calculate_exposure(request: ValidateExposureRequest) -> ExposureCalculationR
         candidate = resolve_original_fpr(art36, CalculationMode.DIDACTIC)
     mitigation = resolve_simple_collateral(
         mode=request.context.calculation_mode,
-        reference_date=request.context.reference_date,
-        operation_id=request.operation.operation_id,
-        currency=request.operation.currency,
-        exposure_indexer=request.operation.exposure_indexer,
-        exposure_maturity=request.operation.exposure_effective_maturity_date,
+        context=_simple_approach_context(request),
         original=candidate,
         mitigators=tuple(_collateral_input(item) for item in request.mitigators),
     )
@@ -165,20 +166,48 @@ def _art36_input(request: ValidateExposureRequest) -> Art36Input:
     )
 
 
+def _simple_approach_context(
+    request: ValidateExposureRequest,
+) -> SimpleApproachContextInput:
+    context = request.context
+    operation = request.operation
+    return SimpleApproachContextInput(
+        reference_date=context.reference_date,
+        operation_id=operation.operation_id,
+        approach=context.collateral_approach,
+        prudential_scope_status=context.prudential_scope_status,
+        fiscal_year_start=context.fiscal_year_start,
+        election_date=context.simple_approach_election_date,
+        uniform_use_status=context.simple_approach_uniform_use_status,
+        recognition_bar_status=context.mitigation_recognition_bar_status,
+        uses_sa_ccr=context.uses_sa_ccr,
+        is_otc_derivative=operation.is_otc_derivative,
+        exposure_currency=operation.currency,
+        exposure_indexation_currency=operation.exposure_indexation_currency,
+        exposure_financial_indexer=operation.exposure_financial_indexer,
+        exposure_maturity=operation.exposure_effective_maturity_date,
+    )
+
+
 def _collateral_input(item: MitigatorInput) -> CollateralInput:
     return CollateralInput(
         mitigator_id=item.mitigator_id,
         linked_operation_id=item.linked_operation_id,
+        guarantee_type=item.guarantee_type,
         collateral_subtype=item.collateral_subtype,
         market_value=_optional_decimal(item.collateral_market_value),
         currency=item.guarantee_currency,
-        collateral_indexer=item.collateral_indexer,
+        indexation_currency=item.collateral_indexation_currency,
+        financial_indexer=item.collateral_financial_indexer,
         market_value_as_of=item.market_value_as_of,
         mark_to_market_frequency=item.mark_to_market_frequency,
+        market_value_date_policy=item.market_value_date_policy,
+        mark_to_market_consistency_status=item.mark_to_market_consistency_status,
         effective_maturity_date=item.collateral_effective_maturity_date,
         overlap_status=item.overlap_status,
         association_scope=item.association_scope,
         institution_requirements_status=item.institution_requirements_status,
+        provider_type=item.collateral_provider_type,
     )
 
 

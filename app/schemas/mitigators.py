@@ -2,15 +2,22 @@
 
 from datetime import date
 
-from app.core.enums import AssociationScope, EligibilityEvidenceStatus, MarkToMarketFrequency, OverlapStatus
+from app.core.enums import (
+    AssociationScope,
+    CollateralProviderType,
+    EligibilityEvidenceStatus,
+    MarketValueDatePolicy,
+    MarkToMarketFrequency,
+    OverlapStatus,
+)
 from app.schemas.common import IdentifierStr, MoneyStr, StrictAPIModel
-from app.schemas.context import CurrencyCode
+from app.schemas.context import CurrencyCode, IndexationCurrencyCode
 
 
 class MitigatorInput(StrictAPIModel):
     mitigator_id: IdentifierStr
     linked_operation_id: IdentifierStr
-    guarantee_type: IdentifierStr
+    guarantee_type: IdentifierStr | None = None
     collateral_subtype: IdentifierStr | None = None
     guarantee_face_value: MoneyStr | None = None
     collateral_market_value: MoneyStr | None = None
@@ -27,3 +34,8 @@ class MitigatorInput(StrictAPIModel):
     overlap_status: OverlapStatus | None = None
     association_scope: AssociationScope | None = None
     institution_requirements_status: EligibilityEvidenceStatus | None = None
+    collateral_provider_type: CollateralProviderType | None = None
+    market_value_date_policy: MarketValueDatePolicy | None = None
+    mark_to_market_consistency_status: EligibilityEvidenceStatus | None = None
+    collateral_indexation_currency: IndexationCurrencyCode | None = None
+    collateral_financial_indexer: IdentifierStr | None = None

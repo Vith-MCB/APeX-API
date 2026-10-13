@@ -24,6 +24,13 @@ implementado. As regras permanecem `IN_REVIEW`; `REGULATORY` e `VALIDATION_ONLY`
 publicam números. O resultado não representa o RWA total nem o requerimento de PR da
 instituição. Veja o [plano completo](plan.md).
 
+O título público federal só recebe o tratamento didático quando a instituição
+declara o escopo `RWA_CPAD`, a eleição e o uso uniforme da Abordagem Simples,
+a ausência de SA-CCR, derivativo de balcão e vedação supervisória. Moeda
+nominal, moeda de indexação e indexador financeiro são comparados separadamente;
+`NONE` declara ausência de indexação. A marcação deve usar a data-base ou o dia
+útil anterior expressamente declarado pela instituição.
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate

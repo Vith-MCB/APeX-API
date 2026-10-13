@@ -8,7 +8,7 @@ from app.core.enums import (
     PrudentialCategoryConflictStatus,
 )
 from app.schemas.common import IdentifierStr, MoneyStr, StrictAPIModel
-from app.schemas.context import CurrencyCode
+from app.schemas.context import CurrencyCode, IndexationCurrencyCode
 
 
 class OperationInput(StrictAPIModel):
@@ -36,3 +36,6 @@ class OperationInput(StrictAPIModel):
     exposure_value_basis: ExposureValueBasis | None = None
     exposure_indexer: IdentifierStr | None = None
     exposure_effective_maturity_date: date | None = None
+    is_otc_derivative: bool | None = None
+    exposure_indexation_currency: IndexationCurrencyCode | None = None
+    exposure_financial_indexer: IdentifierStr | None = None

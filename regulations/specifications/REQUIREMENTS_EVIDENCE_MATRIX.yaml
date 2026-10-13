@@ -235,9 +235,11 @@ requirements:
       essa consistência; o motor confere valor, data e frequência.
     institution_attests:
       - mark_to_market_is_consistent
+      - market_value_date_policy
     engine_checks:
       - collateral_market_value positivo
-      - market_value_as_of presente e não posterior à data-base
+      - market_value_as_of presente e coerente com REFERENCE_DATE ou
+        PREVIOUS_BUSINESS_DAY_DECLARED
       - mark_to_market_frequency igual a DAILY
     failure:
       missing: INSUFFICIENT_DATA
@@ -330,9 +332,11 @@ requirements:
       O instrumento deve ser título público federal, marcado a mercado e
       movimentável somente por ordem da instituição credora.
     institution_attests:
+      - guarantee_type
       - collateral_subtype
       - creditor_movement_control_status
     engine_checks:
+      - guarantee_type igual a COLLATERAL
       - subtipo igual a FEDERAL_PUBLIC_BOND
       - valor de mercado e data presentes
       - controle de movimentação declarado como DECLARED
@@ -436,13 +440,18 @@ requirements:
       coberta é o menor valor entre a exposição e esse valor reconhecido.
     institution_attests:
       - exposure_currency
-      - exposure_indexer
+      - exposure_indexation_currency
+      - exposure_financial_indexer
       - guarantee_currency
-      - collateral_indexer
+      - collateral_indexation_currency
+      - collateral_financial_indexer
       - collateral_market_value
       - exposure_amount
     engine_checks:
-      - moeda e indexador da exposição iguais aos do colateral
+      - moeda nominal, moeda de indexação e indexador financeiro da exposição
+        iguais aos do colateral
+      - NONE explícito representa ausência de indexação; null não representa
+        coincidência
       - valor_reconhecido = valor_de_mercado × 0.80
       - parcela_coberta = minimo(exposicao, valor_reconhecido)
       - parcela_descoberta = exposicao - parcela_coberta

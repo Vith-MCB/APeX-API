@@ -161,6 +161,12 @@ def _request(
         "calculation_mode": mode,
         "reporting_currency": "BRL",
         "strict_mode": True,
+        "prudential_scope_status": "RWA_CPAD",
+        "fiscal_year_start": "2026-01-01",
+        "simple_approach_election_date": "2025-12-31",
+        "simple_approach_uniform_use_status": "DECLARED_UNIFORM",
+        "mitigation_recognition_bar_status": "NOT_BARRED",
+        "uses_sa_ccr": False,
     }
     if scope is not None:
         context["minimum_pr_scope"] = scope
@@ -184,6 +190,9 @@ def _request(
             "provided_exposure_amount": "125000.00",
             "exposure_value_basis": "INSTITUTION_DECLARED_ART5_ART6",
             "exposure_effective_maturity_date": "2027-09-30",
+            "is_otc_derivative": False,
+            "exposure_indexation_currency": "NONE",
+            "exposure_financial_indexer": "NONE",
         },
         "mitigators": [
             {
@@ -195,7 +204,12 @@ def _request(
                 "guarantee_currency": "BRL",
                 "market_value_as_of": "2026-09-30",
                 "mark_to_market_frequency": "DAILY",
+                "market_value_date_policy": "REFERENCE_DATE",
+                "mark_to_market_consistency_status": "DECLARED",
                 "collateral_effective_maturity_date": "2028-09-30",
+                "collateral_provider_type": "COUNTERPARTY",
+                "collateral_indexation_currency": "NONE",
+                "collateral_financial_indexer": "NONE",
                 "overlap_status": "NONE",
                 "association_scope": "UNIQUE_EXPOSURE",
                 "institution_requirements_status": "DECLARED",
