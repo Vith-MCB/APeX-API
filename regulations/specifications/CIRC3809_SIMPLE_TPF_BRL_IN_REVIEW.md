@@ -49,8 +49,10 @@ O motor confere:
 
 - abordagem `SIMPLE`, datas coerentes e um subtipo de título público federal;
 - exposição em balanço, em BRL, sem derivativo de balcão;
-- moeda e indexador iguais entre exposição e colateral;
-- valor de mercado positivo e marcação diária não posterior à data-base;
+- moeda nominal, moeda de indexação e indexador financeiro explicitamente
+  iguais entre exposição e colateral;
+- valor de mercado positivo e marcação diária na data-base, ou no dia útil
+  imediatamente anterior quando assim declarado pela instituição;
 - vencimento efetivo do colateral igual ou superior ao da exposição;
 - vínculo com uma única operação e ausência de sobreposição declarada;
 - exatamente um mitigador para este primeiro tratamento;
@@ -60,9 +62,10 @@ A operação pode continuar trazendo várias garantias. Essa capacidade estrutur
 permanece. Enquanto o art. 2º, § 3º, não tiver algoritmo aprovado, dois ou mais
 mitigadores produzem `UNSUPPORTED` neste tratamento, sem apagar os vínculos.
 
-O contrato atual não possui todos os atributos. Até que existam e a ficha seja
-aprovada, a saída é `INSUFFICIENT_DATA` ou `REQUIRES_REVIEW`, sem FPR, RWA ou
-capital.
+O contrato individual possui as declarações deste recorte. Ausência ou
+ambiguidade produz `INSUFFICIENT_DATA` ou `REQUIRES_REVIEW`. Enquanto a ficha
+está em revisão, números são publicados somente em `DIDACTIC`, marcados como
+demonstração; `REGULATORY` permanece sem número.
 
 ## Saídas e critérios de decisão
 
@@ -78,15 +81,17 @@ capital.
 - `NOT_APPLICABLE`: requisito de reconhecimento comprovadamente não atendido,
   como vencimento residual menor, movimentação fora do controle do credor ou
   vedação supervisória comprovada.
-- Enquanto o catálogo estiver `IN_REVIEW`, FPR, RWA, valor mitigado e
-  contribuição de capital permanecem vazios.
+- Enquanto o catálogo estiver `IN_REVIEW`, `REGULATORY` mantém FPR, RWA, valor
+  mitigado e contribuição de capital vazios.
 
 ## Exceções e não aplicação
 
 - Abordagem Abrangente, SA-CCR, derivativo de balcão, compensação, garantia
   fidejussória, derivativo de crédito, securitização e fora de balanço;
 - instrumento diferente de título público federal;
-- moedas ou indexadores descasados;
+- moedas nominais, moedas de indexação ou indexadores financeiros descasados;
+- moeda de indexação ou indexador financeiro ausente, inclusive quando ambos
+  os lados estão nulos; ausência deve ser declarada explicitamente como `NONE`;
 - vencimento efetivo do colateral inferior ao da exposição;
 - marcação a mercado não diária;
 - custódia, registro, contrato, execução ou controles declarados como não
@@ -117,9 +122,8 @@ exposição:
    FPR_original`. Nenhum fator de capital da Resolução CMN nº 4.958 entra nessa
    conta.
 
-A fórmula não está implementada. Ela somente poderá ser executada depois da
-aprovação desta ficha, da integridade das fontes e dos testes exigidos pelo
-registro.
+A fórmula está implementada somente como demonstração `DIDACTIC`. A
+implementação não promove a ficha nem autoriza execução `REGULATORY`.
 
 ### Cenário numérico
 
@@ -140,16 +144,18 @@ Se o valor reconhecido fosse R$ 160.000,00, a parcela coberta ficaria limitada
 na mesma operação continuam armazenados, mas este tratamento retorna
 `UNSUPPORTED`.
 
-A Circular não define arredondamento monetário nesses dispositivos. A futura
-implementação deve preservar `Decimal` e adiar arredondamento. Enquanto a ficha
-estiver `IN_REVIEW`, o resultado efetivo permanece vazio.
+A Circular não define arredondamento monetário nesses dispositivos. A
+implementação preserva `Decimal` e quantiza em duas casas somente na saída
+HTTP. Enquanto a ficha estiver `IN_REVIEW`, o resultado regulatório permanece
+vazio.
 
 ## Casos especificados
 
 1. **Positivo completo, candidato:** o cenário numérico acima. Resultado
    normativo candidato após aprovação: parcela coberta de R$ 80.000,00 com FPR
    `0%`, parcela descoberta de R$ 45.000,00 com FPR `85%` e RWA candidato de
-   R$ 38.250,00. Resultado atual: `REQUIRES_REVIEW`, campos numéricos vazios.
+   R$ 38.250,00. Resultado atual: números somente em `DIDACTIC`;
+   `REGULATORY` retorna `REQUIRES_REVIEW` com campos numéricos vazios.
 2. **Atributo ausente:** sem a declaração estruturada do registro ou depósito.
    Resultado: `INSUFFICIENT_DATA`, campos numéricos vazios.
 3. **Fora da vigência do recorte:** data `2023-06-30`. Resultado:
@@ -175,13 +181,14 @@ estiver `IN_REVIEW`, o resultado efetivo permanece vazio.
 
 - Autor da revisão: não preenchido
 - Data da revisão: não preenchida
-- Decisão especificada e ainda não implementada: parcela coberta igual ao
-  mínimo entre a exposição e 80% do valor de mercado.
+- Decisão implementada somente em `DIDACTIC`: parcela coberta igual ao mínimo
+  entre a exposição e 80% do valor de mercado.
 - Decisão adotada neste ajuste: requisitos jurídicos e operacionais são
   declarações da instituição; a APeX não audita seus documentos.
 - Limitação temporária: o cálculo normativo inicial aceita um mitigador,
   embora a arquitetura preserve várias garantias por operação.
-- A Resolução CMN nº 4.958 permanece apenas como contexto; nenhum fator de
-  capital é aplicado.
+- A contribuição isolada de 8% da Resolução CMN nº 4.958 pode ser demonstrada
+  separadamente quando seu âmbito é declarado. Ela não integra a fórmula de
+  alocação das parcelas nem representa o requerimento total da instituição.
 
 > Esta ficha não está aprovada e não autoriza cálculo regulatório.

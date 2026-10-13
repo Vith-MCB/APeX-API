@@ -6,7 +6,7 @@
 
 API de alta performance para cálculo de alocação de capital regulamentar (RWACPAD) em conformidade com as diretrizes da Resolução BCB nº 229 do Banco Central.
 
-## Estado atual (Fase 3 — jobs persistidos)
+## Estado atual (Fase 7 — RWA didático)
 
 A API disponibiliza a validação JSON, a validação Parquet e o lote em
 `POST /api/v1/batches`. O lote responde `202` e só é processado pelo worker:
@@ -15,8 +15,21 @@ A API disponibiliza a validação JSON, a validação Parquet e o lote em
 python scripts/run_worker.py
 ```
 
-O worker reutiliza a leitura e a validação já existentes. A saída traz issues, summary e
-manifest. Ela não contém FPR, RWA nem contribuição de PR. Veja o [plano completo](plan.md).
+O worker reutiliza a leitura e a validação já existentes. A saída do lote traz issues,
+summary e manifest, ainda sem números prudenciais.
+
+`POST /api/v1/calculations/exposure` demonstra, no modo `DIDACTIC`, o FPR original, as
+parcelas, o RWA antes/depois e a contribuição isolada de 8% ao mínimo de PR para o recorte
+implementado. As regras permanecem `IN_REVIEW`; `REGULATORY` e `VALIDATION_ONLY` não
+publicam números. O resultado não representa o RWA total nem o requerimento de PR da
+instituição. Veja o [plano completo](plan.md).
+
+O título público federal só recebe o tratamento didático quando a instituição
+declara o escopo `RWA_CPAD`, a eleição e o uso uniforme da Abordagem Simples,
+a ausência de SA-CCR, derivativo de balcão e vedação supervisória. Moeda
+nominal, moeda de indexação e indexador financeiro são comparados separadamente;
+`NONE` declara ausência de indexação. A marcação deve usar a data-base ou o dia
+útil anterior expressamente declarado pela instituição.
 
 ```bash
 python3 -m venv .venv

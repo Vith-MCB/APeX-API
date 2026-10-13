@@ -1,13 +1,16 @@
 """Monta as duas parcelas quando há exatamente um título elegível."""
 
-from datetime import date
-
 from app.core.enums import CalculationMode, CalculationStatus, TrancheType
 from app.domain.models.decision import OriginalFprDecision
 from app.domain.models.tranche import ExposureTranche
 from app.domain.rules.bcb229 import ARTICLE as ORIGINAL_ARTICLE
 from app.domain.rules.bcb229 import RULE_ID as ORIGINAL_RULE_ID
-from app.domain.rules.circ3809 import COVERED_FPR, RULE_ID, CollateralInput
+from app.domain.rules.circ3809 import (
+    COVERED_FPR,
+    RULE_ID,
+    CollateralInput,
+    SimpleApproachContextInput,
+)
 from app.domain.services.allocation import covered_and_uncovered
 from app.domain.services.eligibility import assess_simple_federal_bond
 from app.domain.services.reconciliation import tranches_sum_to_exposure
@@ -30,11 +33,7 @@ class MitigationDecision:
 def resolve_simple_collateral(
     *,
     mode: CalculationMode,
-    reference_date: date,
-    operation_id: str,
-    currency: str,
-    exposure_indexer: str | None,
-    exposure_maturity: date | None,
+    context: SimpleApproachContextInput,
     original: OriginalFprDecision,
     mitigators: tuple[CollateralInput, ...],
 ) -> MitigationDecision:
@@ -42,14 +41,7 @@ def resolve_simple_collateral(
     ids = tuple(item.mitigator_id for item in mitigators)
     if not mitigators:
         return MitigationDecision(None, (), (), ids)
-    status, reasons = assess_simple_federal_bond(
-        mitigators,
-        operation_id=operation_id,
-        currency=currency,
-        exposure_indexer=exposure_indexer,
-        exposure_maturity=exposure_maturity,
-        reference_date=reference_date,
-    )
+    status, reasons = assess_simple_federal_bond(mitigators, context)
     if status is not CalculationStatus.CALCULATED:
         return MitigationDecision(status, reasons, (), ids)
     if original.exposure_amount is None or original.original_fpr is None:
