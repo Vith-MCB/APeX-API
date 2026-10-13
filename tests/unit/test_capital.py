@@ -1,6 +1,8 @@
 """RWA do recorte e contribuição isolada de PR."""
 
+import json
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -11,6 +13,19 @@ from app.domain.services.rwa import calculate_rwa
 from app.main import app
 
 client = TestClient(app)
+
+
+def test_versioned_didactic_example_matches_the_documented_result() -> None:
+    payload = json.loads(
+        (Path(__file__).parents[2] / "examples/didactic_exposure.json").read_text(encoding="utf-8")
+    )
+    body = _calculate(payload)
+
+    assert body["original_fpr"] == "0.85"
+    assert body["rwa_before_mitigation"] == "106250.00"
+    assert body["rwa_after_mitigation"] == "38250.00"
+    assert body["minimum_pr_contribution"] == "3060.00"
+    assert [item["amount"] for item in body["tranches"]] == ["80000.00", "45000.00"]
 
 
 def test_didactic_calculates_rwa_and_minimum_pr_contribution() -> None:
