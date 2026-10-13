@@ -5,7 +5,7 @@ from typing import Annotated
 
 from pydantic import StringConstraints
 
-from app.core.enums import CalculationMode, CollateralApproach, SchemaVersion
+from app.core.enums import CalculationMode, CollateralApproach, MinimumPrScope, SchemaVersion
 from app.schemas.common import IdentifierStr, StrictAPIModel
 
 CurrencyCode = Annotated[str, StringConstraints(strict=True, pattern=r"^[A-Z]{3}$")]
@@ -21,3 +21,4 @@ class CalculationContext(StrictAPIModel):
     calculation_mode: CalculationMode
     reporting_currency: CurrencyCode = "BRL"
     strict_mode: bool = True
+    minimum_pr_scope: MinimumPrScope | None = None

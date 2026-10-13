@@ -38,8 +38,15 @@ class TrancheReport(StrictAPIModel):
     tranche_type: TrancheType
     amount: str
     fpr: str
+    rwa_contribution: str
     rule_id: IdentifierStr
     article: str
+
+
+class AppliedRuleReport(StrictAPIModel):
+    rule_id: IdentifierStr
+    article: str
+    factor: str
 
 
 class ExposureCalculationReport(StrictAPIModel):
@@ -58,8 +65,16 @@ class ExposureCalculationReport(StrictAPIModel):
     mitigation_status: CalculationStatus | None = None
     mitigation_reasons: list[str] = Field(default_factory=list)
     tranches: list[TrancheReport] = Field(default_factory=list)
+    rwa_before_mitigation: str | None = None
+    rwa_after_mitigation: str | None = None
+    rwa_delta: str | None = None
+    minimum_pr_contribution: str | None = None
+    minimum_pr_status: CalculationStatus | None = None
+    minimum_pr_reasons: list[str] = Field(default_factory=list)
+    applied_rules: list[AppliedRuleReport] = Field(default_factory=list)
     didactic_not_regulatory: bool
     regulatory_calculation: Literal[False] = False
+    complete_regulatory_coverage: Literal[False] = False
 
 
 class ParquetValidationReport(StrictAPIModel):
