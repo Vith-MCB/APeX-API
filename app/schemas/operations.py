@@ -34,3 +34,5 @@ class OperationInput(StrictAPIModel):
     financial_data_is_latest_available: bool | None = None
     prudential_category_conflict_status: PrudentialCategoryConflictStatus | None = None
     exposure_value_basis: ExposureValueBasis | None = None
+    exposure_indexer: IdentifierStr | None = None
+    exposure_effective_maturity_date: date | None = None

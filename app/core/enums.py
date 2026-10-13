@@ -72,3 +72,26 @@ class PrudentialCategoryConflictStatus(StrEnum):
 
 class ExposureValueBasis(StrEnum):
     INSTITUTION_DECLARED_ART5_ART6 = "INSTITUTION_DECLARED_ART5_ART6"
+
+
+class MarkToMarketFrequency(StrEnum):
+    DAILY = "DAILY"
+    OTHER = "OTHER"
+    UNKNOWN = "UNKNOWN"
+
+
+class OverlapStatus(StrEnum):
+    NONE = "NONE"
+    PRESENT = "PRESENT"
+    UNKNOWN = "UNKNOWN"
+
+
+class AssociationScope(StrEnum):
+    UNIQUE_EXPOSURE = "UNIQUE_EXPOSURE"
+    MULTIPLE_EXPOSURES = "MULTIPLE_EXPOSURES"
+    UNKNOWN = "UNKNOWN"
+
+
+class TrancheType(StrEnum):
+    COVERED_COLLATERAL_SIMPLE = "COVERED_COLLATERAL_SIMPLE"
+    UNCOVERED = "UNCOVERED"

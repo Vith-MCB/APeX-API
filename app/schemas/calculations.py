@@ -5,7 +5,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from app.core.enums import CalculationMode, CalculationStatus
+from app.core.enums import CalculationMode, CalculationStatus, TrancheType
 from app.schemas.common import IdentifierStr, StrictAPIModel, ValidationIssue
 from app.schemas.context import CalculationContext
 from app.schemas.mitigators import MitigatorInput
@@ -34,6 +34,14 @@ class ParquetLink(StrictAPIModel):
     mitigator_ids: list[IdentifierStr]
 
 
+class TrancheReport(StrictAPIModel):
+    tranche_type: TrancheType
+    amount: str
+    fpr: str
+    rule_id: IdentifierStr
+    article: str
+
+
 class ExposureCalculationReport(StrictAPIModel):
     exposure_id: IdentifierStr
     operation_id: IdentifierStr
@@ -46,6 +54,10 @@ class ExposureCalculationReport(StrictAPIModel):
     original_fpr: str | None
     reasons: list[str]
     issues: list[ValidationIssue]
+    mitigator_ids: list[IdentifierStr] = Field(default_factory=list)
+    mitigation_status: CalculationStatus | None = None
+    mitigation_reasons: list[str] = Field(default_factory=list)
+    tranches: list[TrancheReport] = Field(default_factory=list)
     didactic_not_regulatory: bool
     regulatory_calculation: Literal[False] = False
 
