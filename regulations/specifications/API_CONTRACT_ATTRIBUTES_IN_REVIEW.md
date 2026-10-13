@@ -36,17 +36,21 @@ insuficiente. `NOT_MET` indica requisito objetivo não atendido. `VERIFIED` não
 
 - `prudential_scope_status`: a instituição declara que a exposição está em
   `RWA_CPAD`.
-- `fiscal_year_start` e `simple_approach_election_date`: datas usadas pelo
-  motor para verificar coerência da eleição.
+- `fiscal_year_start`, `fiscal_year_end` e
+  `simple_approach_election_date`: período e data usados para verificar a
+  eleição.
 - `simple_approach_uniform_use_status`: declaração de uso uniforme da
   Abordagem Simples.
 - `mitigation_recognition_bar_status`: `NOT_BARRED`, `BARRED` ou `UNKNOWN`.
 - `uses_sa_ccr`: declaração usada para bloquear o art. 3º-A.
 
-O motor rejeita outra abordagem, data de eleição posterior ao exercício e
-status desconhecido. `prudential_scope_status=RWA_CPAD` confirma o escopo
-declarado deste tratamento. `institution_profile` e `capital_regime` continuam
-sem substituir a declaração de escopo.
+O art. 3º, § 1º, permite que a opção ocorra durante o exercício social em que
+vigorará, com aplicação desde o início desse exercício. O motor exige início
+menor ou igual ao fim, eleição entre essas datas e data-base dentro do mesmo
+período. Não presume duração anual nem exige eleição anterior ao início.
+`prudential_scope_status=RWA_CPAD` confirma o escopo declarado deste
+tratamento. `institution_profile` e `capital_regime` continuam sem substituir
+a declaração de escopo.
 
 ## Operação e contraparte
 
@@ -149,3 +153,15 @@ FPR, parcelas, RWA e contribuição isolada de PR, sempre com
 status, regras e motivos de bloqueio. Os hashes exigidos continuam sendo os das
 fontes oficiais e das especificações, não os de documentos internos da
 instituição.
+
+No modo didático, `rwa_before_mitigation` pode ser publicado quando E e FPR
+original estão fechados. RWA depois, diferença e contribuição de PR só são
+publicados quando a mitigação foi calculada, quando não existe garantia, ou
+quando a garantia é expressamente `NOT_APPLICABLE`. Status `UNSUPPORTED`,
+`INSUFFICIENT_DATA`, `REQUIRES_REVIEW` e `INVALID_INPUT` deixam esses resultados
+posteriores vazios.
+
+O endpoint de cálculo reutiliza as mesmas conferências estruturais do endpoint
+de validação. Divergência entre `has_guarantee` e a lista ou
+`linked_operation_id` incorreto gera issue, `mitigation_status=INVALID_INPUT` e
+impede resultados de mitigação.

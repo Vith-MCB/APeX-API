@@ -15,10 +15,11 @@ from app.domain.rules.circ3809 import (
     SimpleApproachContextInput,
 )
 from app.domain.services.capital import MinimumPrDecision, calculate_minimum_pr_contribution
+from app.domain.services.exposure_links import validate_exposure_links
 from app.domain.services.fpr import resolve_original_fpr
 from app.domain.services.reconciliation import tranche_rwa_sums_to_total
-from app.domain.services.rwa import RwaResult, calculate_rwa
-from app.domain.services.tranche_builder import resolve_simple_collateral
+from app.domain.services.rwa import RwaResult, calculate_baseline_rwa, calculate_rwa
+from app.domain.services.tranche_builder import MitigationDecision, resolve_simple_collateral
 from app.schemas.calculations import (
     AppliedRuleReport,
     ExposureCalculationReport,
@@ -37,13 +38,35 @@ def calculate_exposure(request: ValidateExposureRequest) -> ExposureCalculationR
     candidate = decision
     if request.context.calculation_mode is not CalculationMode.DIDACTIC:
         candidate = resolve_original_fpr(art36, CalculationMode.DIDACTIC)
-    mitigation = resolve_simple_collateral(
-        mode=request.context.calculation_mode,
-        context=_simple_approach_context(request),
-        original=candidate,
-        mitigators=tuple(_collateral_input(item) for item in request.mitigators),
+    relationship_issues = validate_exposure_links(
+        operation_id=request.operation.operation_id,
+        has_guarantee=request.operation.has_guarantee,
+        linked_operation_ids=tuple(
+            item.linked_operation_id for item in request.mitigators
+        ),
     )
+    mitigators = tuple(_collateral_input(item) for item in request.mitigators)
+    if relationship_issues:
+        mitigation = MitigationDecision(
+            CalculationStatus.INVALID_INPUT,
+            ("invalid_exposure_mitigator_links",),
+            (),
+            tuple(item.mitigator_id for item in mitigators),
+        )
+    else:
+        mitigation = resolve_simple_collateral(
+            mode=request.context.calculation_mode,
+            context=_simple_approach_context(request),
+            original=candidate,
+            mitigators=mitigators,
+        )
     publish = mitigation.status is CalculationStatus.CALCULATED
+    publish_post_mitigation = mitigation.status in {
+        None,
+        CalculationStatus.CALCULATED,
+        CalculationStatus.NOT_APPLICABLE,
+    }
+    baseline_rwa: Decimal | None = None
     rwa: RwaResult | None = None
     minimum_pr: MinimumPrDecision | None = None
     if (
@@ -51,21 +74,26 @@ def calculate_exposure(request: ValidateExposureRequest) -> ExposureCalculationR
         and candidate.exposure_amount is not None
         and candidate.original_fpr is not None
     ):
-        applied_tranches = mitigation.tranches if publish else ()
-        rwa = calculate_rwa(
+        baseline_rwa = calculate_baseline_rwa(
             candidate.exposure_amount,
             candidate.original_fpr,
-            applied_tranches,
         )
-        if applied_tranches and not tranche_rwa_sums_to_total(
-            rwa.tranche_contributions,
-            rwa.after_mitigation,
-        ):
-            raise RuntimeError("tranche RWA does not sum to mitigated RWA")
-        minimum_pr = calculate_minimum_pr_contribution(
-            rwa.after_mitigation,
-            request.context.minimum_pr_scope,
-        )
+        if publish_post_mitigation:
+            applied_tranches = mitigation.tranches if publish else ()
+            rwa = calculate_rwa(
+                candidate.exposure_amount,
+                candidate.original_fpr,
+                applied_tranches,
+            )
+            if applied_tranches and not tranche_rwa_sums_to_total(
+                rwa.tranche_contributions,
+                rwa.after_mitigation,
+            ):
+                raise RuntimeError("tranche RWA does not sum to mitigated RWA")
+            minimum_pr = calculate_minimum_pr_contribution(
+                rwa.after_mitigation,
+                request.context.minimum_pr_scope,
+            )
     tranches = [
         TrancheReport(
             tranche_type=tranche.tranche_type,
@@ -77,7 +105,11 @@ def calculate_exposure(request: ValidateExposureRequest) -> ExposureCalculationR
         )
         for index, tranche in enumerate(mitigation.tranches)
     ]
-    applied_rules = _applied_rules(candidate, publish, minimum_pr) if rwa else []
+    applied_rules = (
+        _applied_rules(candidate, publish, minimum_pr)
+        if baseline_rwa is not None
+        else []
+    )
     return ExposureCalculationReport(
         exposure_id=request.operation.exposure_id,
         operation_id=request.operation.operation_id,
@@ -89,12 +121,12 @@ def calculate_exposure(request: ValidateExposureRequest) -> ExposureCalculationR
         exposure_amount=_money_text(decision.exposure_amount),
         original_fpr=None if decision.original_fpr is None else format(decision.original_fpr, "f"),
         reasons=list(decision.reasons),
-        issues=list(decision.issues),
+        issues=list(decision.issues) + list(relationship_issues),
         mitigator_ids=list(mitigation.mitigator_ids),
         mitigation_status=mitigation.status,
         mitigation_reasons=list(mitigation.reasons),
         tranches=tranches if publish else [],
-        rwa_before_mitigation=_money_text(rwa.before_mitigation) if rwa else None,
+        rwa_before_mitigation=_money_text(baseline_rwa),
         rwa_after_mitigation=_money_text(rwa.after_mitigation) if rwa else None,
         rwa_delta=_money_text(rwa.delta) if rwa else None,
         minimum_pr_contribution=(
@@ -177,6 +209,7 @@ def _simple_approach_context(
         approach=context.collateral_approach,
         prudential_scope_status=context.prudential_scope_status,
         fiscal_year_start=context.fiscal_year_start,
+        fiscal_year_end=context.fiscal_year_end,
         election_date=context.simple_approach_election_date,
         uniform_use_status=context.simple_approach_uniform_use_status,
         recognition_bar_status=context.mitigation_recognition_bar_status,

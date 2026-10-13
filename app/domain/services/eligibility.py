@@ -70,12 +70,18 @@ def _prudential_scope(context: SimpleApproachContextInput) -> Check:
 def _simple_approach(context: SimpleApproachContextInput) -> Check:
     if context.approach is not CollateralApproach.SIMPLE:
         return CalculationStatus.UNSUPPORTED, "collateral_approach_out_of_cut"
-    if context.fiscal_year_start is None or context.election_date is None:
+    if (
+        context.fiscal_year_start is None
+        or context.fiscal_year_end is None
+        or context.election_date is None
+    ):
         return CalculationStatus.INSUFFICIENT_DATA, "missing_simple_approach_dates"
-    if context.fiscal_year_start > context.reference_date:
-        return CalculationStatus.INVALID_INPUT, "fiscal_year_after_reference_date"
-    if context.election_date > context.fiscal_year_start:
-        return CalculationStatus.REQUIRES_REVIEW, "simple_approach_elected_after_fiscal_year_start"
+    if context.fiscal_year_start > context.fiscal_year_end:
+        return CalculationStatus.INVALID_INPUT, "invalid_fiscal_year_period"
+    if not context.fiscal_year_start <= context.reference_date <= context.fiscal_year_end:
+        return CalculationStatus.REQUIRES_REVIEW, "reference_date_outside_fiscal_year"
+    if not context.fiscal_year_start <= context.election_date <= context.fiscal_year_end:
+        return CalculationStatus.REQUIRES_REVIEW, "simple_approach_election_outside_fiscal_year"
     uniform = context.uniform_use_status
     if uniform is None or uniform is SimpleApproachUniformUseStatus.UNKNOWN:
         return CalculationStatus.INSUFFICIENT_DATA, "missing_simple_approach_uniform_use"

@@ -70,13 +70,59 @@ def test_exposure_without_guarantee_keeps_baseline_rwa() -> None:
     assert body["tranches"] == []
 
 
-def test_ineligible_guarantee_does_not_reduce_rwa() -> None:
+def test_unsupported_guarantee_publishes_only_baseline_rwa() -> None:
     body = _calculate(_request(scope="ARTICLE_1_INCLUDED", subtype="GOLD"))
 
     assert body["mitigation_status"] == "UNSUPPORTED"
     assert body["rwa_before_mitigation"] == "106250.00"
+    assert body["rwa_after_mitigation"] is None
+    assert body["rwa_delta"] is None
+    assert body["minimum_pr_contribution"] is None
+    assert body["minimum_pr_status"] is None
+    assert body["tranches"] == []
+
+
+@pytest.mark.parametrize(
+    ("target", "field", "value", "status"),
+    [
+        ("mitigator", "collateral_market_value", None, "INSUFFICIENT_DATA"),
+        ("mitigator", "overlap_status", "PRESENT", "REQUIRES_REVIEW"),
+        ("mitigator", "market_value_as_of", "2026-10-01", "INVALID_INPUT"),
+    ],
+)
+def test_unresolved_mitigation_publishes_only_baseline_rwa(
+    target: str,
+    field: str,
+    value: object,
+    status: str,
+) -> None:
+    payload = _request(scope="ARTICLE_1_INCLUDED")
+    record = payload["mitigators"][0] if target == "mitigator" else payload[target]
+    if value is None:
+        record.pop(field)
+    else:
+        record[field] = value
+    body = _calculate(payload)
+
+    assert body["mitigation_status"] == status
+    assert body["rwa_before_mitigation"] == "106250.00"
+    assert body["rwa_after_mitigation"] is None
+    assert body["rwa_delta"] is None
+    assert body["minimum_pr_contribution"] is None
+    assert body["minimum_pr_status"] is None
+    assert body["tranches"] == []
+
+
+def test_not_applicable_guarantee_keeps_original_rwa_as_resolved_result() -> None:
+    payload = _request(scope="ARTICLE_1_INCLUDED")
+    payload["mitigators"][0]["collateral_effective_maturity_date"] = "2026-12-31"
+    body = _calculate(payload)
+
+    assert body["mitigation_status"] == "NOT_APPLICABLE"
+    assert body["rwa_before_mitigation"] == "106250.00"
     assert body["rwa_after_mitigation"] == "106250.00"
     assert body["rwa_delta"] == "0.00"
+    assert body["minimum_pr_contribution"] == "8500.00"
     assert body["tranches"] == []
 
 
@@ -163,7 +209,8 @@ def _request(
         "strict_mode": True,
         "prudential_scope_status": "RWA_CPAD",
         "fiscal_year_start": "2026-01-01",
-        "simple_approach_election_date": "2025-12-31",
+        "fiscal_year_end": "2026-12-31",
+        "simple_approach_election_date": "2026-03-15",
         "simple_approach_uniform_use_status": "DECLARED_UNIFORM",
         "mitigation_recognition_bar_status": "NOT_BARRED",
         "uses_sa_ccr": False,
